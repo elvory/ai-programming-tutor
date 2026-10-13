@@ -15,9 +15,25 @@ if "diagnosis" not in st.session_state:
 if "hint_level" not in st.session_state:
     st.session_state.hint_level = 1
 
+
+# 清除旧的诊断结果
+def clear_diagnosis():
+    st.session_state.diagnosis = None
+    st.session_state.hint_level = 1
+
+
 #用户输入
-question = st.text_area("请输入编程题目")
-code = st.text_area("请输入你的代码",height=200)
+question = st.text_area(
+     "请输入编程题目",
+     key = "question_input",
+     on_change = clear_diagnosis
+)
+code = st.text_area(
+     "请输入你的代码",
+     height=200,
+     key = "code_input",
+     on_change = clear_diagnosis
+)
 
 #开始诊断
 if st.button("开始AI诊断"):
