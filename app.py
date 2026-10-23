@@ -1,118 +1,83 @@
+"""AI Programming Tutor V2: dashboard entry point and explicit navigation."""
+import html
+
 import streamlit as st
-from services.llm_service import analyze_code
-from services.record_service import save_record
 
-st.title("AI Programming Tutor")
-
-st.write("基于大语言模型的渐进式编程学习与知识诊断系统")
+from services.activity_service import build_heatmap, load_activities, summarize_activity
+from services.problem_service import get_learning_route, load_problems
+from utils.ui import configure_page, render_heatmap
 
 
-#初始化状态
-if "diagnosis" not in st.session_state:
-    st.session_state.diagnosis = None
-
-if "hint_level" not in st.session_state:
-    st.session_state.hint_level = 1
+def open_practice(problem_id):
+    st.session_state["requested_problem_id"] = problem_id
+    st.switch_page("pages/practice.py")
 
 
-# 清除旧的诊断结果
-def clear_diagnosis():
-    st.session_state.diagnosis = None
-    st.session_state.hint_level = 1
+def dashboard():
+    st.markdown('<div class="eyebrow">YOUR ALGORITHM JOURNEY · V2.0</div>', unsafe_allow_html=True)
+    st.title("把每一次练习，变成进步。")
+    st.caption("选一道题，写下思路，再向前走一步。学习进度来自你保存的本地刷题活动。")
+    problems = load_problems()
+    route = get_learning_route()
+    try:
+        activities = load_activities()
+        summary = summarize_activity(activities, problems)
+    except (OSError, ValueError) as exc:
+        activities, summary = None, None
+        st.error("无法读取刷题活动，请检查活动文件格式和读取权限。原数据未被覆盖。")
 
+    metrics = st.columns(4)
+    values = (
+        summary["total_submissions"] if summary else "—",
+        summary["completed_problems"] if summary else "—",
+        summary["streak_days"] if summary else "—",
+        f"第 {summary['recommended_stage']} 阶段" if summary else "—",
+    )
+    for column, label, value in zip(metrics, ("累计刷题提交", "已完成 LeetCode 题目", "连续学习天数", "推荐学习阶段"), values):
+        column.metric(label, value)
+    st.caption("提交仅统计「记录一次本地提交」；完成数仅统计你确认在 LeetCode 通过的不同题目。AI 诊断不会增加这两项。")
 
-def normalize_diagnosis(result):
-    """为部分缺失的诊断补齐展示字段，拒绝空结果和错误响应。"""
-    if not isinstance(result, dict):
-        return None
-
-    hints = result.get("hints")
-    hints = [hint.strip() for hint in hints
-             if isinstance(hint, str) and hint.strip()] if isinstance(hints, list) else []
-    fields = ("error_type", "knowledge", "analysis")
-    if not hints and not any(
-        isinstance(result.get(field), str) and result[field].strip()
-        for field in fields
-    ):
-        return None
-
-    defaults = {
-        "error_type": "未知",
-        "knowledge": "未知",
-        "analysis": "暂未提供问题分析。",
-    }
-    diagnosis = {
-        field: result[field].strip()
-        if isinstance(result.get(field), str) and result[field].strip() else default
-        for field, default in defaults.items()
-    }
-    diagnosis["hints"] = hints or ["暂未提供提示，请结合问题分析检查代码。"]
-    return diagnosis
-
-
-#用户输入
-question = st.text_area(
-     "请输入编程题目",
-     key = "question_input",
-     on_change = clear_diagnosis
-)
-code = st.text_area(
-     "请输入你的代码",
-     height=200,
-     key = "code_input",
-     on_change = clear_diagnosis
-)
-
-#开始诊断
-if st.button("开始AI诊断"):
-    if not question.strip() or not code.strip():
-        st.session_state.diagnosis = None
-        st.warning("请先输入题目和代码！")
-
+    st.subheader("学习活动", divider="green")
+    if activities is not None:
+        render_heatmap(build_heatmap(activities))
+        if not summary["total_submissions"]:
+            st.info("还没有本地刷题提交。开始练习后，点击「记录一次本地提交」点亮第一格。")
     else:
-        clear_diagnosis()
-        try:
-            result = normalize_diagnosis(analyze_code(code))
-        except Exception:
-            st.error("诊断失败，请稍后重试。")
-        else:
-            if result is None:
-                st.error("未获得有效的诊断结果，请重试。")
-            else:
-                st.session_state.diagnosis = result
-                # 保存仅在本次按钮操作成功诊断后执行；Hint 和普通重运行不会保存。
-                record = {
-                    "question": question,
-                    "error_type": result["error_type"],
-                    "knowledge": result["knowledge"],
-                    "hint_level": 1,
-                }
-                try:
-                    save_record(record)
-                except (OSError, ValueError, TypeError):
-                    st.warning("诊断已完成，但学习记录保存失败，请检查记录文件格式和写入权限。")
+        st.warning("活动数据暂不可用，恢复读取后再生成绿墙。")
+    st.caption("过去 365 天 · 按北京时间归日。今天尚未提交时，连续天数可延续至昨天；仅确认通过不会点亮绿墙。")
 
-#显示诊断结果
-if st.session_state.diagnosis is not None:
-        result = st.session_state.diagnosis
+    st.subheader("推荐刷题路线", divider="green")
+    completed = summary["completed_ids"] if summary else set()
+    recommended = summary["recommended_stage"] if summary else 1
+    stage_problems = [p for p in problems if p["stage"] == recommended]
+    next_problem = next((p for p in stage_problems if p["id"] not in completed), stage_problems[0])
+    if all(p["id"] in completed for p in problems):
+        st.success("当前精选题库已全部完成！可以从动态规划阶段开始复习，或选择其他题目巩固。")
+    if st.button("开始推荐练习", type="primary", key="start_recommended"):
+        open_practice(next_problem["id"])
+    st.caption("按基础到进阶逐步推进；阶段内题目全部标记通过后，推荐下一未完成阶段。通过状态为用户自报。")
+    for stage in route:
+        done = sum(p["id"] in completed for p in stage["problems"])
+        label = f"{stage['id']:02d} · {stage['title']}　{done}/{len(stage['problems'])} 已完成"
+        with st.expander(label, expanded=stage["id"] == recommended):
+            for problem in stage["problems"]:
+                title, meta, action = st.columns([3.4, 2.1, 1.2], vertical_alignment="center")
+                title.markdown(f"**#{problem['id']} · {html.escape(problem['title_zh'])}**")
+                title.caption(problem["title_en"] + " · " + " / ".join(problem["tags"]))
+                status = "已通过（用户自报）" if problem["id"] in completed else "待练习"
+                meta.caption(f"{problem['difficulty']} · {status}")
+                if action.button("进入练习", key=f"route_{problem['id']}", use_container_width=True):
+                    open_practice(problem["id"])
 
-        st.subheader("AI 诊断结果")
 
-        st.write("**错误类型：**",result["error_type"])
-        st.write("**涉及知识点：**",result["knowledge"])
-        st.write("**问题分析：**",result["analysis"])
+configure_page()
+with st.sidebar:
+    st.markdown("### ◈ AI Programming Tutor")
+    st.caption("V2.0 · 练习 / 反思 / 进步")
 
-        #获取当前提示等级
-        level = st.session_state.hint_level
-
-        st.info(f"💡 Hint {level}：" + result["hints"][level-1])
-
-        #判断是否还有下一级提示
-        if level < len(result["hints"]):
-
-             if st.button("我还是不会，给我下一个Hint"):
-                  st.session_state.hint_level +=1
-                  st.rerun()
-
-        else:
-             st.success("已经显示全部提示，请尝试独立完成代码！")
+navigation = st.navigation([
+    st.Page(dashboard, title="学习仪表盘", icon="📊", default=True),
+    st.Page("pages/practice.py", title="选题与练习", icon="💻", url_path="practice"),
+    st.Page("pages/history.py", title="学习记录", icon="📚", url_path="history"),
+])
+navigation.run()

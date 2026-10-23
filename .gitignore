@@ -4,3 +4,11 @@ __pycache__/
 
 # VS Code settings
 .vscode/
+
+# Local learning records
+/data/records.json
+/data/activities.json
+
+# Local verification artifacts
+/.playwright-cli/
+/work/

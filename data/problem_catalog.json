@@ -1,0 +1,814 @@
+[
+  {
+    "id": 1,
+    "title_zh": "两数之和",
+    "title_en": "Two Sum",
+    "slug": "two-sum",
+    "difficulty": "Easy",
+    "tags": [
+      "数组",
+      "哈希表"
+    ],
+    "stage": 1,
+    "summary": "寻找两个不同位置，使对应数值之和等于目标值，返回这两个位置。",
+    "examples": [
+      {
+        "input": "nums = [4, 1, 6], target = 7",
+        "output": "[1, 2]"
+      }
+    ],
+    "constraints": [
+      "输入恰有一对答案；同一元素不可使用两次；索引从 0 开始。"
+    ],
+    "python_template": "from __future__ import annotations\nfrom typing import List, Optional\n\nclass Solution:\n    def twoSum(self, nums: List[int], target: int) -> List[int]:\n        pass\n",
+    "official_url": "https://leetcode.cn/problems/two-sum/",
+    "source_note": "本地原创练习摘要及自编示例，不是官方完整题面。题号、标题、难度等为公开题目元数据；完整定义与最新约束请查看 LeetCode 官方链接。"
+  },
+  {
+    "id": 217,
+    "title_zh": "存在重复元素",
+    "title_en": "Contains Duplicate",
+    "slug": "contains-duplicate",
+    "difficulty": "Easy",
+    "tags": [
+      "数组",
+      "哈希表"
+    ],
+    "stage": 1,
+    "summary": "判断整数数组中是否有重复出现的数值。",
+    "examples": [
+      {
+        "input": "nums = [5, 8, 5]",
+        "output": "True"
+      }
+    ],
+    "constraints": [
+      "输入为整数数组；没有重复值时返回 False。"
+    ],
+    "python_template": "from __future__ import annotations\nfrom typing import List, Optional\n\nclass Solution:\n    def containsDuplicate(self, nums: List[int]) -> bool:\n        pass\n",
+    "official_url": "https://leetcode.cn/problems/contains-duplicate/",
+    "source_note": "本地原创练习摘要及自编示例，不是官方完整题面。题号、标题、难度等为公开题目元数据；完整定义与最新约束请查看 LeetCode 官方链接。"
+  },
+  {
+    "id": 242,
+    "title_zh": "有效的字母异位词",
+    "title_en": "Valid Anagram",
+    "slug": "valid-anagram",
+    "difficulty": "Easy",
+    "tags": [
+      "哈希表",
+      "字符串"
+    ],
+    "stage": 1,
+    "summary": "判断两个字符串能否仅通过字符重排互相得到，字符出现次数也必须相同。",
+    "examples": [
+      {
+        "input": "s = 'silent', t = 'listen'",
+        "output": "True"
+      }
+    ],
+    "constraints": [
+      "练习使用小写英文字母；字符重复次数也需要比较。"
+    ],
+    "python_template": "from __future__ import annotations\nfrom typing import List, Optional\n\nclass Solution:\n    def isAnagram(self, s: str, t: str) -> bool:\n        pass\n",
+    "official_url": "https://leetcode.cn/problems/valid-anagram/",
+    "source_note": "本地原创练习摘要及自编示例，不是官方完整题面。题号、标题、难度等为公开题目元数据；完整定义与最新约束请查看 LeetCode 官方链接。"
+  },
+  {
+    "id": 49,
+    "title_zh": "字母异位词分组",
+    "title_en": "Group Anagrams",
+    "slug": "group-anagrams",
+    "difficulty": "Medium",
+    "tags": [
+      "数组",
+      "哈希表",
+      "字符串"
+    ],
+    "stage": 1,
+    "summary": "按字符及其出现次数对字符串分组，每组内的字符串可以通过字符重排相互得到。",
+    "examples": [
+      {
+        "input": "strs = ['ab', 'ba', 'cd', 'dc', 'a']",
+        "output": "[['ab', 'ba'], ['cd', 'dc'], ['a']]"
+      }
+    ],
+    "constraints": [
+      "练习使用小写英文字母，允许空字符串；分组及组内顺序不限。"
+    ],
+    "python_template": "from __future__ import annotations\nfrom typing import List, Optional\n\nclass Solution:\n    def groupAnagrams(self, strs: List[str]) -> List[List[str]]:\n        pass\n",
+    "official_url": "https://leetcode.cn/problems/group-anagrams/",
+    "source_note": "本地原创练习摘要及自编示例，不是官方完整题面。题号、标题、难度等为公开题目元数据；完整定义与最新约束请查看 LeetCode 官方链接。"
+  },
+  {
+    "id": 125,
+    "title_zh": "验证回文串",
+    "title_en": "Valid Palindrome",
+    "slug": "valid-palindrome",
+    "difficulty": "Easy",
+    "tags": [
+      "双指针",
+      "字符串"
+    ],
+    "stage": 2,
+    "summary": "忽略非英文字母和非数字字符，并忽略大小写，判断剩余字符从两端读取是否相同。",
+    "examples": [
+      {
+        "input": "s = 'No lemon, no melon!'",
+        "output": "True"
+      }
+    ],
+    "constraints": [
+      "本练习输入为可打印 ASCII 字符；过滤后为空时视为回文。"
+    ],
+    "python_template": "from __future__ import annotations\nfrom typing import List, Optional\n\nclass Solution:\n    def isPalindrome(self, s: str) -> bool:\n        pass\n",
+    "official_url": "https://leetcode.cn/problems/valid-palindrome/",
+    "source_note": "本地原创练习摘要及自编示例，不是官方完整题面。题号、标题、难度等为公开题目元数据；完整定义与最新约束请查看 LeetCode 官方链接。"
+  },
+  {
+    "id": 3,
+    "title_zh": "无重复字符的最长子串",
+    "title_en": "Longest Substring Without Repeating Characters",
+    "slug": "longest-substring-without-repeating-characters",
+    "difficulty": "Medium",
+    "tags": [
+      "哈希表",
+      "字符串",
+      "滑动窗口"
+    ],
+    "stage": 2,
+    "summary": "求字符串中连续且不含重复字符的片段的最大长度。",
+    "examples": [
+      {
+        "input": "s = 'pwwkewx'",
+        "output": "4"
+      }
+    ],
+    "constraints": [
+      "子串必须连续；输入可以为空，空串答案为 0。"
+    ],
+    "python_template": "from __future__ import annotations\nfrom typing import List, Optional\n\nclass Solution:\n    def lengthOfLongestSubstring(self, s: str) -> int:\n        pass\n",
+    "official_url": "https://leetcode.cn/problems/longest-substring-without-repeating-characters/",
+    "source_note": "本地原创练习摘要及自编示例，不是官方完整题面。题号、标题、难度等为公开题目元数据；完整定义与最新约束请查看 LeetCode 官方链接。"
+  },
+  {
+    "id": 11,
+    "title_zh": "盛最多水的容器",
+    "title_en": "Container With Most Water",
+    "slug": "container-with-most-water",
+    "difficulty": "Medium",
+    "tags": [
+      "数组",
+      "双指针",
+      "贪心"
+    ],
+    "stage": 2,
+    "summary": "把数组位置看作间隔为 1 的竖线，选两条线，与水平底边围出的容器最多能盛多少水。",
+    "examples": [
+      {
+        "input": "height = [2, 4, 3, 5]",
+        "output": "8"
+      }
+    ],
+    "constraints": [
+      "数组长度至少为 2，高度为非负整数；容器保持竖直。"
+    ],
+    "python_template": "from __future__ import annotations\nfrom typing import List, Optional\n\nclass Solution:\n    def maxArea(self, height: List[int]) -> int:\n        pass\n",
+    "official_url": "https://leetcode.cn/problems/container-with-most-water/",
+    "source_note": "本地原创练习摘要及自编示例，不是官方完整题面。题号、标题、难度等为公开题目元数据；完整定义与最新约束请查看 LeetCode 官方链接。"
+  },
+  {
+    "id": 42,
+    "title_zh": "接雨水",
+    "title_en": "Trapping Rain Water",
+    "slug": "trapping-rain-water",
+    "difficulty": "Hard",
+    "tags": [
+      "数组",
+      "双指针",
+      "栈"
+    ],
+    "stage": 2,
+    "summary": "每个宽为 1 的柱子有给定高度，计算下雨后柱子间能积存的总水量。",
+    "examples": [
+      {
+        "input": "height = [4, 1, 2, 4]",
+        "output": "5"
+      }
+    ],
+    "constraints": [
+      "柱高为非负整数；没有两侧边界的位置不能存水。"
+    ],
+    "python_template": "from __future__ import annotations\nfrom typing import List, Optional\n\nclass Solution:\n    def trap(self, height: List[int]) -> int:\n        pass\n",
+    "official_url": "https://leetcode.cn/problems/trapping-rain-water/",
+    "source_note": "本地原创练习摘要及自编示例，不是官方完整题面。题号、标题、难度等为公开题目元数据；完整定义与最新约束请查看 LeetCode 官方链接。"
+  },
+  {
+    "id": 20,
+    "title_zh": "有效的括号",
+    "title_en": "Valid Parentheses",
+    "slug": "valid-parentheses",
+    "difficulty": "Easy",
+    "tags": [
+      "字符串",
+      "栈"
+    ],
+    "stage": 3,
+    "summary": "检查括号字符串中的各类括号是否按正确类型与嵌套顺序闭合。",
+    "examples": [
+      {
+        "input": "s = '{[()]}'",
+        "output": "True"
+      }
+    ],
+    "constraints": [
+      "输入只包含 ()[]{}；不允许交叉闭合。"
+    ],
+    "python_template": "from __future__ import annotations\nfrom typing import List, Optional\n\nclass Solution:\n    def isValid(self, s: str) -> bool:\n        pass\n",
+    "official_url": "https://leetcode.cn/problems/valid-parentheses/",
+    "source_note": "本地原创练习摘要及自编示例，不是官方完整题面。题号、标题、难度等为公开题目元数据；完整定义与最新约束请查看 LeetCode 官方链接。"
+  },
+  {
+    "id": 704,
+    "title_zh": "二分查找",
+    "title_en": "Binary Search",
+    "slug": "binary-search",
+    "difficulty": "Easy",
+    "tags": [
+      "数组",
+      "二分查找"
+    ],
+    "stage": 3,
+    "summary": "在严格递增的整数数组中寻找目标值，找到时返回索引，否则返回 -1。",
+    "examples": [
+      {
+        "input": "nums = [-8, -1, 4, 10], target = 4",
+        "output": "2"
+      }
+    ],
+    "constraints": [
+      "数组已按升序排列且元素互不相同；目标是对数时间查找。"
+    ],
+    "python_template": "from __future__ import annotations\nfrom typing import List, Optional\n\nclass Solution:\n    def search(self, nums: List[int], target: int) -> int:\n        pass\n",
+    "official_url": "https://leetcode.cn/problems/binary-search/",
+    "source_note": "本地原创练习摘要及自编示例，不是官方完整题面。题号、标题、难度等为公开题目元数据；完整定义与最新约束请查看 LeetCode 官方链接。"
+  },
+  {
+    "id": 739,
+    "title_zh": "每日温度",
+    "title_en": "Daily Temperatures",
+    "slug": "daily-temperatures",
+    "difficulty": "Medium",
+    "tags": [
+      "数组",
+      "栈"
+    ],
+    "stage": 3,
+    "summary": "对每天的温度，求还需等待多少天才会出现更高温度；后面没有更高温度则填 0。",
+    "examples": [
+      {
+        "input": "temperatures = [61, 62, 60, 65]",
+        "output": "[1, 2, 1, 0]"
+      }
+    ],
+    "constraints": [
+      "输入为非空的整数温度序列；相同温度不算升温。"
+    ],
+    "python_template": "from __future__ import annotations\nfrom typing import List, Optional\n\nclass Solution:\n    def dailyTemperatures(self, temperatures: List[int]) -> List[int]:\n        pass\n",
+    "official_url": "https://leetcode.cn/problems/daily-temperatures/",
+    "source_note": "本地原创练习摘要及自编示例，不是官方完整题面。题号、标题、难度等为公开题目元数据；完整定义与最新约束请查看 LeetCode 官方链接。"
+  },
+  {
+    "id": 150,
+    "title_zh": "逆波兰表达式求值",
+    "title_en": "Evaluate Reverse Polish Notation",
+    "slug": "evaluate-reverse-polish-notation",
+    "difficulty": "Medium",
+    "tags": [
+      "数组",
+      "栈",
+      "数学"
+    ],
+    "stage": 3,
+    "summary": "读取后缀表达式中的整数和四则运算符，计算表达式结果。",
+    "examples": [
+      {
+        "input": "tokens = ['7', '2', '-', '3', '*']",
+        "output": "15"
+      }
+    ],
+    "constraints": [
+      "输入为有效后缀表达式；除法向零截断，且不会除以零。"
+    ],
+    "python_template": "from __future__ import annotations\nfrom typing import List, Optional\n\nclass Solution:\n    def evalRPN(self, tokens: List[str]) -> int:\n        pass\n",
+    "official_url": "https://leetcode.cn/problems/evaluate-reverse-polish-notation/",
+    "source_note": "本地原创练习摘要及自编示例，不是官方完整题面。题号、标题、难度等为公开题目元数据；完整定义与最新约束请查看 LeetCode 官方链接。"
+  },
+  {
+    "id": 206,
+    "title_zh": "反转链表",
+    "title_en": "Reverse Linked List",
+    "slug": "reverse-linked-list",
+    "difficulty": "Easy",
+    "tags": [
+      "链表",
+      "递归"
+    ],
+    "stage": 4,
+    "summary": "反转单链表的连接方向，返回反转后的头节点。",
+    "examples": [
+      {
+        "input": "head = [8, 3, 9]",
+        "output": "[9, 3, 8]"
+      }
+    ],
+    "constraints": [
+      "允许空链表；实际参数是链表节点，方括号只用于说明节点顺序。"
+    ],
+    "python_template": "from __future__ import annotations\nfrom typing import List, Optional\n\n# LeetCode 提供 ListNode；本地阅读时按单链表节点理解。\n# class ListNode:\n#     def __init__(self, val=0, next=None):\n#         self.val, self.next = val, next\n\nclass Solution:\n    def reverseList(self, head: Optional[ListNode]) -> Optional[ListNode]:\n        pass\n",
+    "official_url": "https://leetcode.cn/problems/reverse-linked-list/",
+    "source_note": "本地原创练习摘要及自编示例，不是官方完整题面。题号、标题、难度等为公开题目元数据；完整定义与最新约束请查看 LeetCode 官方链接。"
+  },
+  {
+    "id": 21,
+    "title_zh": "合并两个有序链表",
+    "title_en": "Merge Two Sorted Lists",
+    "slug": "merge-two-sorted-lists",
+    "difficulty": "Easy",
+    "tags": [
+      "链表",
+      "递归"
+    ],
+    "stage": 4,
+    "summary": "把两个升序单链表合并成一个升序链表，返回合并后的头节点。",
+    "examples": [
+      {
+        "input": "list1 = [0, 5], list2 = [2, 3]",
+        "output": "[0, 2, 3, 5]"
+      }
+    ],
+    "constraints": [
+      "两个输入链表均为非递减顺序；允许其中一个或两个为空。"
+    ],
+    "python_template": "from __future__ import annotations\nfrom typing import List, Optional\n\n# LeetCode 提供 ListNode；本地阅读时按单链表节点理解。\n# class ListNode:\n#     def __init__(self, val=0, next=None):\n#         self.val, self.next = val, next\n\nclass Solution:\n    def mergeTwoLists(self, list1: Optional[ListNode], list2: Optional[ListNode]) -> Optional[ListNode]:\n        pass\n",
+    "official_url": "https://leetcode.cn/problems/merge-two-sorted-lists/",
+    "source_note": "本地原创练习摘要及自编示例，不是官方完整题面。题号、标题、难度等为公开题目元数据；完整定义与最新约束请查看 LeetCode 官方链接。"
+  },
+  {
+    "id": 141,
+    "title_zh": "环形链表",
+    "title_en": "Linked List Cycle",
+    "slug": "linked-list-cycle",
+    "difficulty": "Easy",
+    "tags": [
+      "链表",
+      "双指针"
+    ],
+    "stage": 4,
+    "summary": "判断从链表头节点沿 next 指针前进，是否会再次到达已经访问的节点。",
+    "examples": [
+      {
+        "input": "head = [7, 2, 6], tail connects to index 1",
+        "output": "True"
+      }
+    ],
+    "constraints": [
+      "节点身份决定是否成环；尾连接索引仅用于描述，不是函数参数。"
+    ],
+    "python_template": "from __future__ import annotations\nfrom typing import List, Optional\n\n# LeetCode 提供 ListNode；本地阅读时按单链表节点理解。\n# class ListNode:\n#     def __init__(self, val=0, next=None):\n#         self.val, self.next = val, next\n\nclass Solution:\n    def hasCycle(self, head: Optional[ListNode]) -> bool:\n        pass\n",
+    "official_url": "https://leetcode.cn/problems/linked-list-cycle/",
+    "source_note": "本地原创练习摘要及自编示例，不是官方完整题面。题号、标题、难度等为公开题目元数据；完整定义与最新约束请查看 LeetCode 官方链接。"
+  },
+  {
+    "id": 19,
+    "title_zh": "删除链表的倒数第 N 个结点",
+    "title_en": "Remove Nth Node From End of List",
+    "slug": "remove-nth-node-from-end-of-list",
+    "difficulty": "Medium",
+    "tags": [
+      "链表",
+      "双指针"
+    ],
+    "stage": 4,
+    "summary": "移除单链表从末尾数起的第 n 个节点，返回新的头节点。",
+    "examples": [
+      {
+        "input": "head = [6, 1, 9, 4], n = 3",
+        "output": "[6, 9, 4]"
+      }
+    ],
+    "constraints": [
+      "链表非空，1 <= n <= 链表长度；可能需要删除头节点。"
+    ],
+    "python_template": "from __future__ import annotations\nfrom typing import List, Optional\n\n# LeetCode 提供 ListNode；本地阅读时按单链表节点理解。\n# class ListNode:\n#     def __init__(self, val=0, next=None):\n#         self.val, self.next = val, next\n\nclass Solution:\n    def removeNthFromEnd(self, head: Optional[ListNode], n: int) -> Optional[ListNode]:\n        pass\n",
+    "official_url": "https://leetcode.cn/problems/remove-nth-node-from-end-of-list/",
+    "source_note": "本地原创练习摘要及自编示例，不是官方完整题面。题号、标题、难度等为公开题目元数据；完整定义与最新约束请查看 LeetCode 官方链接。"
+  },
+  {
+    "id": 104,
+    "title_zh": "二叉树的最大深度",
+    "title_en": "Maximum Depth of Binary Tree",
+    "slug": "maximum-depth-of-binary-tree",
+    "difficulty": "Easy",
+    "tags": [
+      "二叉树",
+      "递归",
+      "深度优先搜索"
+    ],
+    "stage": 5,
+    "summary": "求从二叉树根节点走到任意叶节点的路径中，最多经过多少个节点。",
+    "examples": [
+      {
+        "input": "root = [5, 2, 8, null, null, 7]",
+        "output": "3"
+      }
+    ],
+    "constraints": [
+      "允许空树，其深度为 0；示例使用层序序列，null 表示空节点。"
+    ],
+    "python_template": "from __future__ import annotations\nfrom typing import List, Optional\n\n# LeetCode 提供 TreeNode；示例中的列表使用层序表示树。\n# class TreeNode:\n#     def __init__(self, val=0, left=None, right=None):\n#         self.val, self.left, self.right = val, left, right\n\nclass Solution:\n    def maxDepth(self, root: Optional[TreeNode]) -> int:\n        pass\n",
+    "official_url": "https://leetcode.cn/problems/maximum-depth-of-binary-tree/",
+    "source_note": "本地原创练习摘要及自编示例，不是官方完整题面。题号、标题、难度等为公开题目元数据；完整定义与最新约束请查看 LeetCode 官方链接。"
+  },
+  {
+    "id": 226,
+    "title_zh": "翻转二叉树",
+    "title_en": "Invert Binary Tree",
+    "slug": "invert-binary-tree",
+    "difficulty": "Easy",
+    "tags": [
+      "二叉树",
+      "递归",
+      "深度优先搜索"
+    ],
+    "stage": 5,
+    "summary": "将二叉树每个节点的左右子树互换，返回翻转后的根节点。",
+    "examples": [
+      {
+        "input": "root = [9, 4, 12, 2, 6]",
+        "output": "[9, 12, 4, null, null, 6, 2]"
+      }
+    ],
+    "constraints": [
+      "允许空树；示例使用层序序列，null 表示缺失节点。"
+    ],
+    "python_template": "from __future__ import annotations\nfrom typing import List, Optional\n\n# LeetCode 提供 TreeNode；示例中的列表使用层序表示树。\n# class TreeNode:\n#     def __init__(self, val=0, left=None, right=None):\n#         self.val, self.left, self.right = val, left, right\n\nclass Solution:\n    def invertTree(self, root: Optional[TreeNode]) -> Optional[TreeNode]:\n        pass\n",
+    "official_url": "https://leetcode.cn/problems/invert-binary-tree/",
+    "source_note": "本地原创练习摘要及自编示例，不是官方完整题面。题号、标题、难度等为公开题目元数据；完整定义与最新约束请查看 LeetCode 官方链接。"
+  },
+  {
+    "id": 102,
+    "title_zh": "二叉树的层序遍历",
+    "title_en": "Binary Tree Level Order Traversal",
+    "slug": "binary-tree-level-order-traversal",
+    "difficulty": "Medium",
+    "tags": [
+      "二叉树",
+      "广度优先搜索",
+      "队列"
+    ],
+    "stage": 5,
+    "summary": "逐层访问二叉树，同一层从左到右，将每一层的节点值分别存入列表。",
+    "examples": [
+      {
+        "input": "root = [8, 3, 10, 1]",
+        "output": "[[8], [3, 10], [1]]"
+      }
+    ],
+    "constraints": [
+      "空树返回空列表；示例以层序格式表示树。"
+    ],
+    "python_template": "from __future__ import annotations\nfrom typing import List, Optional\n\n# LeetCode 提供 TreeNode；示例中的列表使用层序表示树。\n# class TreeNode:\n#     def __init__(self, val=0, left=None, right=None):\n#         self.val, self.left, self.right = val, left, right\n\nclass Solution:\n    def levelOrder(self, root: Optional[TreeNode]) -> List[List[int]]:\n        pass\n",
+    "official_url": "https://leetcode.cn/problems/binary-tree-level-order-traversal/",
+    "source_note": "本地原创练习摘要及自编示例，不是官方完整题面。题号、标题、难度等为公开题目元数据；完整定义与最新约束请查看 LeetCode 官方链接。"
+  },
+  {
+    "id": 98,
+    "title_zh": "验证二叉搜索树",
+    "title_en": "Validate Binary Search Tree",
+    "slug": "validate-binary-search-tree",
+    "difficulty": "Medium",
+    "tags": [
+      "二叉树",
+      "深度优先搜索"
+    ],
+    "stage": 5,
+    "summary": "判断每个节点是否满足：左子树所有值严格更小、右子树所有值严格更大，并递归满足同样规则。",
+    "examples": [
+      {
+        "input": "root = [8, 3, 10, 1, 6]",
+        "output": "True"
+      }
+    ],
+    "constraints": [
+      "允许空树；相等值不满足严格大小关系；示例为层序表示。"
+    ],
+    "python_template": "from __future__ import annotations\nfrom typing import List, Optional\n\n# LeetCode 提供 TreeNode；示例中的列表使用层序表示树。\n# class TreeNode:\n#     def __init__(self, val=0, left=None, right=None):\n#         self.val, self.left, self.right = val, left, right\n\nclass Solution:\n    def isValidBST(self, root: Optional[TreeNode]) -> bool:\n        pass\n",
+    "official_url": "https://leetcode.cn/problems/validate-binary-search-tree/",
+    "source_note": "本地原创练习摘要及自编示例，不是官方完整题面。题号、标题、难度等为公开题目元数据；完整定义与最新约束请查看 LeetCode 官方链接。"
+  },
+  {
+    "id": 200,
+    "title_zh": "岛屿数量",
+    "title_en": "Number of Islands",
+    "slug": "number-of-islands",
+    "difficulty": "Medium",
+    "tags": [
+      "数组",
+      "深度优先搜索",
+      "广度优先搜索"
+    ],
+    "stage": 6,
+    "summary": "二维字符网格里，'1' 表示陆地、'0' 表示水，统计按上下左右连通的陆地块数量。",
+    "examples": [
+      {
+        "input": "grid = [['1', '0', '1'], ['1', '0', '0']]",
+        "output": "2"
+      }
+    ],
+    "constraints": [
+      "网格为非空矩形；仅水平或竖直相邻视为连通。"
+    ],
+    "python_template": "from __future__ import annotations\nfrom typing import List, Optional\n\nclass Solution:\n    def numIslands(self, grid: List[List[str]]) -> int:\n        pass\n",
+    "official_url": "https://leetcode.cn/problems/number-of-islands/",
+    "source_note": "本地原创练习摘要及自编示例，不是官方完整题面。题号、标题、难度等为公开题目元数据；完整定义与最新约束请查看 LeetCode 官方链接。"
+  },
+  {
+    "id": 78,
+    "title_zh": "子集",
+    "title_en": "Subsets",
+    "slug": "subsets",
+    "difficulty": "Medium",
+    "tags": [
+      "数组",
+      "回溯"
+    ],
+    "stage": 6,
+    "summary": "枚举互不相同的整数所能组成的全部子集，包括空集和全集。",
+    "examples": [
+      {
+        "input": "nums = [4, 7]",
+        "output": "[[], [4], [7], [4, 7]]"
+      }
+    ],
+    "constraints": [
+      "输入元素互不相同；相同子集不得重复，输出顺序不限。"
+    ],
+    "python_template": "from __future__ import annotations\nfrom typing import List, Optional\n\nclass Solution:\n    def subsets(self, nums: List[int]) -> List[List[int]]:\n        pass\n",
+    "official_url": "https://leetcode.cn/problems/subsets/",
+    "source_note": "本地原创练习摘要及自编示例，不是官方完整题面。题号、标题、难度等为公开题目元数据；完整定义与最新约束请查看 LeetCode 官方链接。"
+  },
+  {
+    "id": 46,
+    "title_zh": "全排列",
+    "title_en": "Permutations",
+    "slug": "permutations",
+    "difficulty": "Medium",
+    "tags": [
+      "数组",
+      "回溯"
+    ],
+    "stage": 6,
+    "summary": "对互不相同的整数，列出使用每个数恰好一次的所有排列。",
+    "examples": [
+      {
+        "input": "nums = [4, 9]",
+        "output": "[[4, 9], [9, 4]]"
+      }
+    ],
+    "constraints": [
+      "输入为非空数组，元素互不相同；输出顺序不限。"
+    ],
+    "python_template": "from __future__ import annotations\nfrom typing import List, Optional\n\nclass Solution:\n    def permute(self, nums: List[int]) -> List[List[int]]:\n        pass\n",
+    "official_url": "https://leetcode.cn/problems/permutations/",
+    "source_note": "本地原创练习摘要及自编示例，不是官方完整题面。题号、标题、难度等为公开题目元数据；完整定义与最新约束请查看 LeetCode 官方链接。"
+  },
+  {
+    "id": 994,
+    "title_zh": "腐烂的橘子",
+    "title_en": "Rotting Oranges",
+    "slug": "rotting-oranges",
+    "difficulty": "Medium",
+    "tags": [
+      "数组",
+      "广度优先搜索",
+      "队列"
+    ],
+    "stage": 6,
+    "summary": "网格中 0 为空、1 为新鲜橘子、2 为腐烂橘子；每分钟腐烂向上下左右传递，求全部新鲜橘子腐烂的最短时间。",
+    "examples": [
+      {
+        "input": "grid = [[2, 1, 1], [0, 0, 1]]",
+        "output": "3"
+      }
+    ],
+    "constraints": [
+      "网格为非空矩形；无法全部腐烂返回 -1；初始无新鲜橘子返回 0。"
+    ],
+    "python_template": "from __future__ import annotations\nfrom typing import List, Optional\n\nclass Solution:\n    def orangesRotting(self, grid: List[List[int]]) -> int:\n        pass\n",
+    "official_url": "https://leetcode.cn/problems/rotting-oranges/",
+    "source_note": "本地原创练习摘要及自编示例，不是官方完整题面。题号、标题、难度等为公开题目元数据；完整定义与最新约束请查看 LeetCode 官方链接。"
+  },
+  {
+    "id": 53,
+    "title_zh": "最大子数组和",
+    "title_en": "Maximum Subarray",
+    "slug": "maximum-subarray",
+    "difficulty": "Medium",
+    "tags": [
+      "数组",
+      "贪心",
+      "动态规划"
+    ],
+    "stage": 7,
+    "summary": "在非空整数数组中选择一段连续且非空的区间，使元素总和最大，返回最大总和。",
+    "examples": [
+      {
+        "input": "nums = [-4, 6, -2, 3, -8]",
+        "output": "7"
+      }
+    ],
+    "constraints": [
+      "输入数组非空；不能选择空区间。"
+    ],
+    "python_template": "from __future__ import annotations\nfrom typing import List, Optional\n\nclass Solution:\n    def maxSubArray(self, nums: List[int]) -> int:\n        pass\n",
+    "official_url": "https://leetcode.cn/problems/maximum-subarray/",
+    "source_note": "本地原创练习摘要及自编示例，不是官方完整题面。题号、标题、难度等为公开题目元数据；完整定义与最新约束请查看 LeetCode 官方链接。"
+  },
+  {
+    "id": 55,
+    "title_zh": "跳跃游戏",
+    "title_en": "Jump Game",
+    "slug": "jump-game",
+    "difficulty": "Medium",
+    "tags": [
+      "数组",
+      "贪心"
+    ],
+    "stage": 7,
+    "summary": "从数组首位置出发，每个非负数代表从该位置最多可向右跳多少格，判断能否到达末位置。",
+    "examples": [
+      {
+        "input": "nums = [2, 0, 1, 0]",
+        "output": "True"
+      }
+    ],
+    "constraints": [
+      "数组非空；跳跃长度可以小于当前位置的最大值。"
+    ],
+    "python_template": "from __future__ import annotations\nfrom typing import List, Optional\n\nclass Solution:\n    def canJump(self, nums: List[int]) -> bool:\n        pass\n",
+    "official_url": "https://leetcode.cn/problems/jump-game/",
+    "source_note": "本地原创练习摘要及自编示例，不是官方完整题面。题号、标题、难度等为公开题目元数据；完整定义与最新约束请查看 LeetCode 官方链接。"
+  },
+  {
+    "id": 45,
+    "title_zh": "跳跃游戏 II",
+    "title_en": "Jump Game II",
+    "slug": "jump-game-ii",
+    "difficulty": "Medium",
+    "tags": [
+      "数组",
+      "贪心"
+    ],
+    "stage": 7,
+    "summary": "在保证能到达末位置的前提下，求从数组首位置到末位置所需的最少跳跃次数。",
+    "examples": [
+      {
+        "input": "nums = [3, 1, 1, 1, 1]",
+        "output": "2"
+      }
+    ],
+    "constraints": [
+      "数组非空、元素非负，末位置可达；单元素数组需要 0 次跳跃。"
+    ],
+    "python_template": "from __future__ import annotations\nfrom typing import List, Optional\n\nclass Solution:\n    def jump(self, nums: List[int]) -> int:\n        pass\n",
+    "official_url": "https://leetcode.cn/problems/jump-game-ii/",
+    "source_note": "本地原创练习摘要及自编示例，不是官方完整题面。题号、标题、难度等为公开题目元数据；完整定义与最新约束请查看 LeetCode 官方链接。"
+  },
+  {
+    "id": 56,
+    "title_zh": "合并区间",
+    "title_en": "Merge Intervals",
+    "slug": "merge-intervals",
+    "difficulty": "Medium",
+    "tags": [
+      "数组",
+      "排序",
+      "贪心"
+    ],
+    "stage": 7,
+    "summary": "将一组闭区间中重叠的部分合并，输出互不重叠且覆盖范围不变的区间集合。",
+    "examples": [
+      {
+        "input": "intervals = [[2, 5], [4, 9], [12, 14]]",
+        "output": "[[2, 9], [12, 14]]"
+      }
+    ],
+    "constraints": [
+      "每个区间左端点不大于右端点；端点相接也视为重叠。"
+    ],
+    "python_template": "from __future__ import annotations\nfrom typing import List, Optional\n\nclass Solution:\n    def merge(self, intervals: List[List[int]]) -> List[List[int]]:\n        pass\n",
+    "official_url": "https://leetcode.cn/problems/merge-intervals/",
+    "source_note": "本地原创练习摘要及自编示例，不是官方完整题面。题号、标题、难度等为公开题目元数据；完整定义与最新约束请查看 LeetCode 官方链接。"
+  },
+  {
+    "id": 70,
+    "title_zh": "爬楼梯",
+    "title_en": "Climbing Stairs",
+    "slug": "climbing-stairs",
+    "difficulty": "Easy",
+    "tags": [
+      "动态规划",
+      "数学"
+    ],
+    "stage": 8,
+    "summary": "上 n 级楼梯，每次可上 1 级或 2 级，计算不同步长序列共有多少种。",
+    "examples": [
+      {
+        "input": "n = 4",
+        "output": "5"
+      }
+    ],
+    "constraints": [
+      "本练习使用正整数 n；步长顺序不同视为不同方案。"
+    ],
+    "python_template": "from __future__ import annotations\nfrom typing import List, Optional\n\nclass Solution:\n    def climbStairs(self, n: int) -> int:\n        pass\n",
+    "official_url": "https://leetcode.cn/problems/climbing-stairs/",
+    "source_note": "本地原创练习摘要及自编示例，不是官方完整题面。题号、标题、难度等为公开题目元数据；完整定义与最新约束请查看 LeetCode 官方链接。"
+  },
+  {
+    "id": 198,
+    "title_zh": "打家劫舍",
+    "title_en": "House Robber",
+    "slug": "house-robber",
+    "difficulty": "Medium",
+    "tags": [
+      "数组",
+      "动态规划"
+    ],
+    "stage": 8,
+    "summary": "从一排非负数中选取若干位置，不能同时选择相邻位置，求能获得的最大总和。",
+    "examples": [
+      {
+        "input": "nums = [4, 1, 2, 7, 3]",
+        "output": "11"
+      }
+    ],
+    "constraints": [
+      "输入为非空的非负整数数组；允许不选择任何位置。"
+    ],
+    "python_template": "from __future__ import annotations\nfrom typing import List, Optional\n\nclass Solution:\n    def rob(self, nums: List[int]) -> int:\n        pass\n",
+    "official_url": "https://leetcode.cn/problems/house-robber/",
+    "source_note": "本地原创练习摘要及自编示例，不是官方完整题面。题号、标题、难度等为公开题目元数据；完整定义与最新约束请查看 LeetCode 官方链接。"
+  },
+  {
+    "id": 322,
+    "title_zh": "零钱兑换",
+    "title_en": "Coin Change",
+    "slug": "coin-change",
+    "difficulty": "Medium",
+    "tags": [
+      "数组",
+      "动态规划"
+    ],
+    "stage": 8,
+    "summary": "每种面额的硬币可无限使用，求凑出目标金额的最少硬币数，无法凑出时返回 -1。",
+    "examples": [
+      {
+        "input": "coins = [2, 5], amount = 11",
+        "output": "4"
+      }
+    ],
+    "constraints": [
+      "硬币面额为正整数，目标金额非负；金额为 0 时返回 0。"
+    ],
+    "python_template": "from __future__ import annotations\nfrom typing import List, Optional\n\nclass Solution:\n    def coinChange(self, coins: List[int], amount: int) -> int:\n        pass\n",
+    "official_url": "https://leetcode.cn/problems/coin-change/",
+    "source_note": "本地原创练习摘要及自编示例，不是官方完整题面。题号、标题、难度等为公开题目元数据；完整定义与最新约束请查看 LeetCode 官方链接。"
+  },
+  {
+    "id": 1143,
+    "title_zh": "最长公共子序列",
+    "title_en": "Longest Common Subsequence",
+    "slug": "longest-common-subsequence",
+    "difficulty": "Medium",
+    "tags": [
+      "字符串",
+      "动态规划"
+    ],
+    "stage": 8,
+    "summary": "求两个字符串都能按相对顺序选出的最长字符序列长度，字符不要求连续。",
+    "examples": [
+      {
+        "input": "text1 = 'abxc', text2 = 'aybc'",
+        "output": "3"
+      }
+    ],
+    "constraints": [
+      "本练习输入非空小写英文字符串；保持相对顺序，但可以跳过字符。"
+    ],
+    "python_template": "from __future__ import annotations\nfrom typing import List, Optional\n\nclass Solution:\n    def longestCommonSubsequence(self, text1: str, text2: str) -> int:\n        pass\n",
+    "official_url": "https://leetcode.cn/problems/longest-common-subsequence/",
+    "source_note": "本地原创练习摘要及自编示例，不是官方完整题面。题号、标题、难度等为公开题目元数据；完整定义与最新约束请查看 LeetCode 官方链接。"
+  }
+]
