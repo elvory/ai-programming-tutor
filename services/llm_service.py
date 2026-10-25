@@ -1,12 +1,58 @@
-# AI 诊断逻辑模块：规则模拟版本，没有接入在线大模型，不执行学生代码。
+"""Server-side DeepSeek diagnosis; explicit offline rules remain available.
+
+Student source is sent as UTF-8 data, never executed. Transport errors are
+sanitized here so neither credentials nor upstream error bodies reach the UI.
+"""
 
 import ast
+import json
+import os
+from pathlib import Path
+import socket
+from urllib.error import HTTPError, URLError
+from urllib.request import Request, urlopen
+
+from dotenv import load_dotenv
+
+
+ROOT = Path(__file__).resolve().parents[1]
+DEEPSEEK_URL = "https://api.deepseek.com/chat/completions"
+DEFAULT_MODEL = "deepseek-flash"
+REQUEST_TIMEOUT = 30
+
+
+class DiagnosisError(Exception):
+    """A safe, actionable message; never include request/response secrets."""
+
+
+def _strict_diagnosis(result):
+    if not isinstance(result, dict):
+        return None
+    fields = ("error_type", "knowledge", "analysis")
+    if any(not isinstance(result.get(field), str) or not result[field].strip() for field in fields):
+        return None
+    hints = result.get("hints")
+    if (not isinstance(hints, list) or len(hints) != 3
+            or any(not isinstance(hint, str) or not hint.strip() for hint in hints)):
+        return None
+    return {**{field: result[field].strip() for field in fields},
+            "hints": [hint.strip() for hint in hints]}
 
 
 def normalize_diagnosis(result):
     """为部分缺失的诊断补齐展示字段，拒绝空结果和错误响应。"""
     if not isinstance(result, dict):
         return None
+
+    # AI results must never be repaired into an apparently successful diagnosis.
+    if result.get("source") == "deepseek" or result.get("is_mock") is False:
+        diagnosis = _strict_diagnosis(result)
+        if diagnosis is None:
+            return None
+        diagnosis.update({"is_mock": False, "source": result.get("source", "unknown")})
+        if isinstance(result.get("model"), str):
+            diagnosis["model"] = result["model"]
+        return diagnosis
 
     hints = result.get("hints")
     hints = [hint.strip() for hint in hints
@@ -30,12 +76,14 @@ def normalize_diagnosis(result):
     }
     diagnosis["hints"] = hints or ["暂未提供提示，请结合问题分析检查代码。"]
     diagnosis["is_mock"] = result.get("is_mock") is not False
+    diagnosis["source"] = "rules"
     return diagnosis
 
 
 def _with_context(result, problem):
     """Display explicit limits and use the selected catalog problem as context."""
     result["is_mock"] = True
+    result["source"] = "rules"
     context = ""
     if isinstance(problem, dict):
         title = problem.get("title_zh") or problem.get("title_en") or "当前题目"
@@ -50,7 +98,7 @@ def _with_context(result, problem):
     )
     return result
 
-def analyze_code(code, problem=None):
+def analyze_code_rules(code, problem=None):
     """Statically inspect source with optional catalog context; never execute it.
 
     This keeps the original single-argument API and boundary heuristic. The
@@ -106,3 +154,90 @@ def analyze_code(code, problem=None):
             "重点检查循环条件、变量变化和返回结果。"
         ]
     }, problem)
+
+
+def analyze_code(code, problem=None):
+    """Diagnose with DeepSeek; retain the optional problem/single-argument API.
+
+    No retries or implicit rules fallback: a failed request raises DiagnosisError
+    and must not create a successful diagnosis record.
+    """
+    if not isinstance(code, str):
+        raise TypeError("代码必须为字符串。")
+    if not code.strip():
+        raise DiagnosisError("请先填写代码，再开始诊断。")
+    try:
+        load_dotenv(ROOT / ".env", override=False, encoding="utf-8")
+    except (OSError, UnicodeError):
+        raise DiagnosisError("无法加载服务端 .env，请检查文件权限与 UTF-8 编码。") from None
+    key = os.environ.get("DEEPSEEK_API_KEY", "").strip()
+    if not key:
+        raise DiagnosisError("未配置 DEEPSEEK_API_KEY，请在服务端 .env 中设置后重启应用。")
+    model = os.environ.get("DEEPSEEK_MODEL", DEFAULT_MODEL).strip() or DEFAULT_MODEL
+    try:
+        prompt = (ROOT / "prompts" / "diagnose_prompt.txt").read_text(encoding="utf-8")
+    except (OSError, UnicodeError):
+        raise DiagnosisError("诊断 Prompt 无法读取，请检查 prompts/diagnose_prompt.txt。") from None
+    context_fields = ("id", "title_zh", "title_en", "difficulty", "tags", "summary", "examples", "constraints")
+    context = {field: problem[field] for field in context_fields if field in problem} if isinstance(problem, dict) else {}
+    payload = {
+        "model": model,
+        "messages": [
+            {"role": "system", "content": prompt},
+            {"role": "user", "content": json.dumps({"problem": context, "code": code}, ensure_ascii=False)},
+        ],
+        "response_format": {"type": "json_object"},
+        "max_tokens": 1800,
+        "stream": False,
+    }
+    # The current official model defaults to thinking. Disable it for this short
+    # structured task; do not send new-model-only switches to legacy model IDs.
+    if model in ("deepseek-flash", "deepseek-v4-pro"):
+        payload["thinking"] = {"type": "disabled"}
+    try:
+        request = Request(DEEPSEEK_URL, data=json.dumps(payload, ensure_ascii=False).encode("utf-8"),
+                          headers={"Authorization": f"Bearer {key}", "Content-Type": "application/json; charset=utf-8"},
+                          method="POST")
+        with urlopen(request, timeout=REQUEST_TIMEOUT) as response:
+            raw = response.read()
+    except HTTPError as error:
+        status = error.code
+        error.close()
+        messages = {
+            401: "认证失败，请检查服务端密钥是否有效。",
+            402: "账户余额不足，请检查 DeepSeek 账户余额。",
+            429: "请求过于频繁，请稍后手动重试。",
+            400: "请求格式或模型不可用，请核对 DEEPSEEK_MODEL 与官方参数说明。",
+            422: "请求参数不受支持，请核对模型与官方参数说明。",
+        }
+        raise DiagnosisError(f"DeepSeek 请求失败（HTTP {status}）：" + messages.get(status, "服务暂不可用，请稍后手动重试。")) from None
+    except (TimeoutError, socket.timeout):
+        raise DiagnosisError("DeepSeek 请求超时，请稍后手动重试。") from None
+    except URLError as error:
+        timed_out = isinstance(error.reason, (TimeoutError, socket.timeout))
+        raise DiagnosisError("DeepSeek 请求超时，请稍后手动重试。" if timed_out else "无法连接 DeepSeek，请检查网络后手动重试。") from None
+    except (OSError, ValueError):
+        raise DiagnosisError("DeepSeek 请求未能完成，请检查服务端配置与网络。") from None
+    try:
+        body = json.loads(raw)
+    except (ValueError, UnicodeError):
+        raise DiagnosisError("DeepSeek 响应不是有效 JSON，未生成诊断，请手动重试。") from None
+    try:
+        choice = body["choices"][0]
+        content = choice["message"]["content"]
+        finish_reason = choice["finish_reason"]
+    except (KeyError, IndexError, TypeError):
+        raise DiagnosisError("DeepSeek 响应缺少必要字段，未生成诊断。") from None
+    if not isinstance(content, str) or not content.strip():
+        raise DiagnosisError("DeepSeek 返回空响应，未生成诊断，请手动重试。")
+    if finish_reason != "stop":
+        raise DiagnosisError("DeepSeek 响应未完整结束，未生成诊断，请手动重试。")
+    try:
+        result = _strict_diagnosis(json.loads(content))
+    except ValueError:
+        raise DiagnosisError("DeepSeek 诊断不是有效 JSON，未生成诊断，请手动重试。") from None
+    if result is None:
+        raise DiagnosisError("DeepSeek 诊断缺字段或格式错误，必须包含错误类型、知识点、分析和恰好三级非空 Hint。")
+    # Provenance is assigned by the service, never trusted from model content.
+    result.update({"source": "deepseek", "is_mock": False, "model": model})
+    return result

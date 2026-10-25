@@ -63,6 +63,20 @@ def _completion(record, accepted):
     return "用户自报已通过（非官方同步）" if problem_id in accepted else "未确认通过"
 
 
+def _diagnosis_metadata(diagnosis):
+    """Display explicit provenance only; do not guess the source of old records."""
+    source, model = "未记录", "未记录"
+    if isinstance(diagnosis, dict):
+        if diagnosis.get("source") == "deepseek":
+            source = "DeepSeek"
+        elif diagnosis.get("source") == "rules" or diagnosis.get("is_mock") is True:
+            source = "本地规则 / Mock"
+        requested_model = diagnosis.get("model")
+        if isinstance(requested_model, str) and requested_model.strip():
+            model = requested_model
+    return {"诊断来源": source, "请求模型": model}
+
+
 def build_history_rows(records, activities):
     """保留每条历史及原始索引，不修复、丢弃或修改源记录。"""
     fields = {
@@ -88,6 +102,7 @@ def build_history_rows(records, activities):
             for field, label in fields.items()
         })
         if isinstance(record, dict):
+            row.update(_diagnosis_metadata(record))
             row.update({
                 "LeetCode 题号": _first_value(record, "leetcode_id", "problem_id"),
                 "题目名称": _first_value(record, "title", "problem_title"),
@@ -97,7 +112,7 @@ def build_history_rows(records, activities):
             })
         else:
             row.update({field: "不适用" for field in (
-                "LeetCode 题号", "题目名称", "提交日期", "Hint 使用情况", "本地完成状态")})
+                "LeetCode 题号", "题目名称", "提交日期", "Hint 使用情况", "本地完成状态", "诊断来源", "请求模型")})
         rows.append(row)
     return rows
 
@@ -131,9 +146,10 @@ def build_activity_rows(activities):
                 "本地完成状态": _completion(activity, accepted),
             })
             diagnosis = activity.get("diagnosis")
+            row.update(_diagnosis_metadata(diagnosis))
             row["错误类型"] = display_value(diagnosis, "error_type") if isinstance(diagnosis, dict) else "未记录"
         else:
             row.update({field: "不适用" for field in (
-                "LeetCode 题号", "题目名称", "活动类型", "提交日期", "Hint 使用情况", "本地完成状态", "错误类型")})
+                "LeetCode 题号", "题目名称", "活动类型", "提交日期", "Hint 使用情况", "本地完成状态", "错误类型", "诊断来源", "请求模型")})
         rows.append(row)
     return rows

@@ -5,8 +5,9 @@ from uuid import uuid4
 import streamlit as st
 
 from services.activity_service import load_activities, mark_accepted, record_submission, summarize_activity
-from services.llm_service import analyze_code, normalize_diagnosis
-from services.practice_service import reveal_next_hint, save_draft, select_problem, set_diagnosis
+from services.llm_service import DiagnosisError, analyze_code, normalize_diagnosis
+from services.practice_service import (begin_diagnosis, clear_diagnosis, diagnosis_request_is_current,
+                                       reveal_next_hint, save_draft, select_problem, set_diagnosis)
 from services.problem_service import get_problem, load_problems, search_problems
 from services.record_service import save_record, update_record
 from utils.ui import configure_page
@@ -74,21 +75,30 @@ if editor_key not in st.session_state:
 code = st.text_area("Python 3 代码", key=editor_key, height=340, on_change=persist_editor, args=(problem_id, editor_key))
 save_draft(st.session_state, problem_id, code)
 st.caption("每题独立草稿，当前浏览器会话内保留；切换页面、查看 Hint 和重新诊断均不会覆盖代码。关闭或刷新会话前请自行备份。")
+st.caption("点击诊断会将当前题目摘要和代码发送给 DeepSeek，可能产生 API 费用；请勿在代码中填写密钥等敏感信息。")
 
 diagnosis = st.session_state.get("diagnosis")
 has_diagnosis = diagnosis is not None and st.session_state.get("diagnosis_problem_id") == problem_id
-if st.button("重新诊断" if has_diagnosis else "AI 诊断（Mock）", type="primary", key="diagnose"):
+if st.button("重新诊断" if has_diagnosis else "AI 诊断（DeepSeek）", type="primary", key="diagnose"):
     if not code.strip():
         st.warning("请先填写代码，再开始诊断。")
     else:
+        request = begin_diagnosis(st.session_state, problem_id, code)
+        result = None
+        failure = None
         try:
-            with st.spinner("正在检查当前题目与代码…"):
+            with st.spinner("DeepSeek 正在分析当前题目与代码…"):
                 result = normalize_diagnosis(analyze_code(code, problem))
+        except DiagnosisError as error:
+            failure = str(error)
         except Exception:
-            result = None
-            st.error("诊断失败，请稍后重试。草稿已保留。")
-        if result is None:
-            st.error("未获得有效的诊断结果，草稿已保留。")
+            # Do not expose upstream errors, request headers, or student source.
+            failure = "诊断未能完成，请稍后重试。"
+        if not diagnosis_request_is_current(st.session_state, request):
+            st.info("题目、代码或诊断请求已更新，本次过时结果已丢弃。")
+        elif result is None:
+            clear_diagnosis(st.session_state)
+            st.error((failure or "未获得有效的 DeepSeek 诊断结果。") + " 草稿已保留，未保存诊断记录。")
         else:
             record_id = str(uuid4())
             record = {
@@ -96,7 +106,8 @@ if st.button("重新诊断" if has_diagnosis else "AI 诊断（Mock）", type="p
                 "error_type": result["error_type"], "knowledge": result["knowledge"], "hint_level": 1,
                 "record_id": record_id, "leetcode_id": problem_id, "title": problem["title_zh"],
                 "created_at": datetime.now(timezone(timedelta(hours=8))).isoformat(),
-                "hints_used": [1], "is_mock": True,
+                "hints_used": [1], "is_mock": result["is_mock"],
+                "source": result["source"], "model": result.get("model"),
             }
             try:
                 save_record(record)
@@ -106,12 +117,17 @@ if st.button("重新诊断" if has_diagnosis else "AI 诊断（Mock）", type="p
             set_diagnosis(st.session_state, problem_id, code, result, record_id)
 
 diagnosis = st.session_state.get("diagnosis")
-current_diagnosis = diagnosis if st.session_state.get("diagnosis_problem_id") == problem_id else None
+current_diagnosis = diagnosis if (
+    st.session_state.get("diagnosis_problem_id") == problem_id
+    and code == st.session_state.get("diagnosed_code")
+) else None
 if current_diagnosis:
-    st.subheader("AI 辅导 · Mock 模拟诊断", divider="green")
-    st.caption("当前使用本地规则与语法检查，未接入真实大模型，也不会运行你的代码。诊断结果不代表 LeetCode 判题结果。")
-    if code != st.session_state.get("diagnosed_code"):
-        st.warning("代码已修改，下面是上一版代码的分析。请点击「重新诊断」更新结果。")
+    if current_diagnosis.get("source") == "deepseek":
+        st.subheader("AI 辅导 · DeepSeek 诊断", divider="green")
+        st.caption(f"来源：DeepSeek · 请求模型：{current_diagnosis.get('model', '未记录')} · 静态分析，未执行代码，不代表 LeetCode 判题结果。")
+    else:
+        st.subheader("辅导 · 本地规则 / Mock", divider="green")
+        st.caption("来源：本地规则 / Mock；未调用真实大模型，未执行代码，不代表 LeetCode 判题结果。")
     st.markdown(f"**错误类型：** {current_diagnosis['error_type']}")
     st.markdown(f"**知识点：** {current_diagnosis['knowledge']}")
     st.write(current_diagnosis["analysis"])
