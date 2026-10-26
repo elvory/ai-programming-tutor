@@ -4,7 +4,7 @@ import html
 import streamlit as st
 
 from services.activity_service import build_heatmap, load_activities, summarize_activity
-from services.problem_service import get_learning_route, load_problems
+from services.problem_service import CatalogError, get_learning_route, load_problems
 from utils.ui import configure_page, render_heatmap
 
 
@@ -17,8 +17,13 @@ def dashboard():
     st.markdown('<div class="eyebrow">YOUR ALGORITHM JOURNEY · V2.0</div>', unsafe_allow_html=True)
     st.title("把每一次练习，变成进步。")
     st.caption("选一道题，写下思路，再向前走一步。学习进度来自你保存的本地刷题活动。")
-    problems = load_problems()
-    route = get_learning_route()
+    try:
+        problems = load_problems()
+        route = get_learning_route()
+    except CatalogError as exc:
+        st.error(f"题库加载失败：{exc}")
+        st.caption("请修复 data/problem_catalog.json 后刷新页面。学习记录和本地提交未受影响。")
+        st.stop()
     try:
         activities = load_activities()
         summary = summarize_activity(activities, problems)
@@ -50,11 +55,16 @@ def dashboard():
     completed = summary["completed_ids"] if summary else set()
     recommended = summary["recommended_stage"] if summary else 1
     stage_problems = [p for p in problems if p["stage"] == recommended]
-    next_problem = next((p for p in stage_problems if p["id"] not in completed), stage_problems[0])
+    next_problem = next((p for p in stage_problems if p["id"] not in completed), None)
+    if next_problem is None and stage_problems:
+        next_problem = stage_problems[0]
     if all(p["id"] in completed for p in problems):
         st.success("当前精选题库已全部完成！可以从动态规划阶段开始复习，或选择其他题目巩固。")
-    if st.button("开始推荐练习", type="primary", key="start_recommended"):
-        open_practice(next_problem["id"])
+    if next_problem is not None:
+        if st.button("开始推荐练习", type="primary", key="start_recommended"):
+            open_practice(next_problem["id"])
+    else:
+        st.info("当前推荐阶段暂无题目，请查看下方其他阶段或补充题库。")
     st.caption("按基础到进阶逐步推进；阶段内题目全部标记通过后，推荐下一未完成阶段。通过状态为用户自报。")
     for stage in route:
         done = sum(p["id"] in completed for p in stage["problems"])

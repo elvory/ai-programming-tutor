@@ -1,7 +1,7 @@
 import unittest
 from unittest.mock import patch
 
-from services.llm_service import analyze_code
+from services.llm_service import analyze_code_rules as analyze_code
 from services.problem_service import get_problem
 
 

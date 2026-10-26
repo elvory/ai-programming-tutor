@@ -10,6 +10,44 @@ from services.history_service import build_activity_rows, build_history_rows, di
 
 
 class HistoryViewTests(unittest.TestCase):
+    def test_history_sources_and_models_are_displayed_without_rewriting_legacy_records(self):
+        base = {"question": "sample", "error_type": "e", "knowledge": "k", "hint_level": 1}
+        records = [
+            {**base, "source": "deepseek", "is_mock": False, "model": "deepseek-flash"},
+            {**base, "source": "rules"},
+            {**base, "is_mock": True},
+            dict(base),
+            {**base, "source": "unknown", "is_mock": False},
+            None,
+        ]
+        original = copy.deepcopy(records)
+        rows = build_history_rows(records, [])
+        self.assertEqual([row["诊断来源"] for row in rows],
+                         ["DeepSeek", "本地规则 / Mock", "本地规则 / Mock", "未记录", "未记录", "不适用"])
+        self.assertEqual([row["请求模型"] for row in rows],
+                         ["deepseek-flash", "未记录", "未记录", "未记录", "未记录", "不适用"])
+        self.assertEqual(records, original)
+
+    def test_activity_diagnosis_sources_do_not_infer_missing_or_legacy_provenance(self):
+        base = {"kind": "submission", "problem_id": 1, "title": "sample",
+                "timestamp": "2020-01-01T10:00:00+08:00"}
+        diagnoses = [
+            {"source": "deepseek", "is_mock": False, "model": "deepseek-flash"},
+            {"source": "rules"}, {"is_mock": True}, {}, None,
+        ]
+        activities = [{**base, "submission_id": f"s{index}", "diagnosis": diagnosis}
+                      for index, diagnosis in enumerate(diagnoses)]
+        activities.append({"kind": "accepted", "problem_id": 1, "title": "sample",
+                           "timestamp": "2020-01-01T10:00:00+08:00", "event_id": "a1"})
+        activities.append("legacy anomaly")
+        original = copy.deepcopy(activities)
+        rows = build_activity_rows(activities)
+        self.assertEqual([row["诊断来源"] for row in rows],
+                         ["DeepSeek", "本地规则 / Mock", "本地规则 / Mock", "未记录", "未记录", "未记录", "不适用"])
+        self.assertEqual([row["请求模型"] for row in rows],
+                         ["deepseek-flash", "未记录", "未记录", "未记录", "未记录", "未记录", "不适用"])
+        self.assertEqual(activities, original)
+
     def test_legacy_and_malformed_records_keep_original_positions_and_values(self):
         records = [{"question": "legacy"}, None, {"question": 0, "error_type": False,
                    "knowledge": "  ", "hint_level": None}]

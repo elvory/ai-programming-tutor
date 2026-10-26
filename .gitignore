@@ -12,3 +12,8 @@ __pycache__/
 # Local verification artifacts
 /.playwright-cli/
 /work/
+
+# API secrets
+.env
+.env.*
+!.env.example

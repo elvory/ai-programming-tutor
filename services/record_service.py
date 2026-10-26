@@ -14,14 +14,22 @@ def _record_path():
     return Path(os.environ.get("AI_TUTOR_RECORDS_PATH") or FILE_PATH).expanduser()
 
 
+def _reject_constant(value):
+    raise ValueError(f"学习记录文件包含非法 JSON 数值：{value}")
+
+
 def load_records():
     """读取历史；损坏的数据应报错，避免保存时覆盖原有记录。"""
     path = _record_path()
     try:
         with path.open("r", encoding="utf-8") as file:
-            records = json.load(file)
+            records = json.load(file, parse_constant=_reject_constant)
     except FileNotFoundError:
         return []
+    except json.JSONDecodeError as error:
+        raise ValueError(
+            f"学习记录 JSON 解析失败：第 {error.lineno} 行第 {error.colno} 列格式错误。"
+        ) from None
 
     if not isinstance(records, list):
         raise ValueError("学习记录文件的 JSON 根节点必须是列表。")
@@ -55,6 +63,10 @@ def validate_record(record):
             errors.append(f"hint_level 必须是正整数，实际类型为 {type(level).__name__}，值为 {level!r}")
     if errors:
         raise ValueError("；".join(errors))
+    try:
+        json.dumps(record, ensure_ascii=False, allow_nan=False)
+    except ValueError:
+        raise ValueError("学习记录必须是标准 JSON，不能包含 NaN 或 Infinity。") from None
 
 
 def save_record(record):
@@ -100,7 +112,7 @@ def update_record(record_id, updates):
 
 def _write_records(records):
     # 先完成序列化，写入失败时仍保留原文件。
-    content = json.dumps(records, ensure_ascii=False, indent=4)
+    content = json.dumps(records, ensure_ascii=False, indent=4, allow_nan=False)
     path = _record_path()
     path.parent.mkdir(parents=True, exist_ok=True)
     temporary_path = None

@@ -16,9 +16,24 @@ from dotenv import load_dotenv
 
 
 ROOT = Path(__file__).resolve().parents[1]
-DEEPSEEK_URL = "https://api.deepseek.com/chat/completions"
+RESPONSES_URL = "https://api.deepseek.com/responses"
 DEFAULT_MODEL = "deepseek-flash"
+RESPONSES_MODELS = ("deepseek-flash", "deepseek-v4-pro")
 REQUEST_TIMEOUT = 30
+SCHEMA_NAME = "code_diagnosis"
+# Arrays cannot be length-constrained by every strict schema implementation;
+# _strict_diagnosis still requires exactly three non-empty hints.
+DIAGNOSIS_SCHEMA = {
+    "type": "object",
+    "properties": {
+        "error_type": {"type": "string"},
+        "knowledge": {"type": "string"},
+        "analysis": {"type": "string"},
+        "hints": {"type": "array", "items": {"type": "string"}},
+    },
+    "required": ["error_type", "knowledge", "analysis", "hints"],
+    "additionalProperties": False,
+}
 
 
 class DiagnosisError(Exception):
@@ -98,6 +113,25 @@ def _with_context(result, problem):
     )
     return result
 
+def _response_text(body):
+    """Extract output_text from Responses API message items without other data."""
+    output = body.get("output") if isinstance(body, dict) else None
+    if not isinstance(output, list):
+        return ""
+    parts = []
+    for item in output:
+        if not isinstance(item, dict) or item.get("type") != "message":
+            continue
+        content = item.get("content")
+        if not isinstance(content, list):
+            continue
+        for part in content:
+            if (isinstance(part, dict) and part.get("type") == "output_text"
+                    and isinstance(part.get("text"), str)):
+                parts.append(part["text"])
+    return "".join(parts)
+
+
 def analyze_code_rules(code, problem=None):
     """Statically inspect source with optional catalog context; never execute it.
 
@@ -174,6 +208,8 @@ def analyze_code(code, problem=None):
     if not key:
         raise DiagnosisError("未配置 DEEPSEEK_API_KEY，请在服务端 .env 中设置后重启应用。")
     model = os.environ.get("DEEPSEEK_MODEL", DEFAULT_MODEL).strip() or DEFAULT_MODEL
+    if model not in RESPONSES_MODELS:
+        raise DiagnosisError("当前 Responses 结构化输出仅支持 deepseek-flash 或 deepseek-v4-pro，请调整 DEEPSEEK_MODEL。")
     try:
         prompt = (ROOT / "prompts" / "diagnose_prompt.txt").read_text(encoding="utf-8")
     except (OSError, UnicodeError):
@@ -182,20 +218,15 @@ def analyze_code(code, problem=None):
     context = {field: problem[field] for field in context_fields if field in problem} if isinstance(problem, dict) else {}
     payload = {
         "model": model,
-        "messages": [
-            {"role": "system", "content": prompt},
-            {"role": "user", "content": json.dumps({"problem": context, "code": code}, ensure_ascii=False)},
-        ],
-        "response_format": {"type": "json_object"},
-        "max_tokens": 1800,
+        "instructions": prompt,
+        "input": json.dumps({"problem": context, "code": code}, ensure_ascii=False),
+        "reasoning": {"effort": "none"},
+        "max_output_tokens": 1800,
         "stream": False,
+        "text": {"format": {"type": "json_schema", "name": SCHEMA_NAME, "schema": DIAGNOSIS_SCHEMA}},
     }
-    # The current official model defaults to thinking. Disable it for this short
-    # structured task; do not send new-model-only switches to legacy model IDs.
-    if model in ("deepseek-flash", "deepseek-v4-pro"):
-        payload["thinking"] = {"type": "disabled"}
     try:
-        request = Request(DEEPSEEK_URL, data=json.dumps(payload, ensure_ascii=False).encode("utf-8"),
+        request = Request(RESPONSES_URL, data=json.dumps(payload, ensure_ascii=False).encode("utf-8"),
                           headers={"Authorization": f"Bearer {key}", "Content-Type": "application/json; charset=utf-8"},
                           method="POST")
         with urlopen(request, timeout=REQUEST_TIMEOUT) as response:
@@ -222,16 +253,14 @@ def analyze_code(code, problem=None):
         body = json.loads(raw)
     except (ValueError, UnicodeError):
         raise DiagnosisError("DeepSeek 响应不是有效 JSON，未生成诊断，请手动重试。") from None
-    try:
-        choice = body["choices"][0]
-        content = choice["message"]["content"]
-        finish_reason = choice["finish_reason"]
-    except (KeyError, IndexError, TypeError):
-        raise DiagnosisError("DeepSeek 响应缺少必要字段，未生成诊断。") from None
+    if (not isinstance(body, dict) or "status" not in body
+            or not isinstance(body.get("output"), list)):
+        raise DiagnosisError("DeepSeek 响应缺少必要字段，未生成诊断。")
+    if body["status"] != "completed":
+        raise DiagnosisError("DeepSeek 响应未完整结束，未生成诊断，请手动重试。")
+    content = _response_text(body)
     if not isinstance(content, str) or not content.strip():
         raise DiagnosisError("DeepSeek 返回空响应，未生成诊断，请手动重试。")
-    if finish_reason != "stop":
-        raise DiagnosisError("DeepSeek 响应未完整结束，未生成诊断，请手动重试。")
     try:
         result = _strict_diagnosis(json.loads(content))
     except ValueError:

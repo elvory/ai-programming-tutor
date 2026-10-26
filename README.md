@@ -4,15 +4,32 @@
 
 ## 运行
 
+环境要求：Python 3.10+（本项目在 Python 3.10.20 的 `ai-study` 环境验证）。以下命令使用该环境；如果你的 Python 路径不同，请替换为实际路径。
+
 在 PowerShell 中执行：
 
 ```powershell
 Set-Location 'D:\Projects\Python\ai-programming-tutor'
 & 'D:\anaconda\envs\ai-study\python.exe' -m pip install -r requirements.txt
+Copy-Item .env.example .env   # 仅首次配置；随后在 .env 中填写真实密钥
 & 'D:\anaconda\envs\ai-study\python.exe' -m streamlit run app.py
 ```
 
 打开终端显示的本地网址。侧栏包含学习仪表盘、选题与练习、学习记录。依赖为 `streamlit==1.50.0` 和 `python-dotenv==1.2.2`，测试使用标准库 `unittest` 和 Streamlit 自带的 `AppTest`。
+
+## 配置
+
+首次使用请复制 `.env.example` 为 `.env`，填写服务端密钥。`.env` 已被 Git 忽略，不要提交；`.env.example` 只保留占位值，可以被 Git 跟踪。
+
+| 变量 | 必填 | 默认值 | 说明 |
+| --- | --- | --- | --- |
+| `DEEPSEEK_API_KEY` | AI 诊断必填 | 无 | 配置在服务端 `.env` 或进程环境变量中；不在页面、日志或 Git 中展示 |
+| `DEEPSEEK_MODEL` | 可选 | `deepseek-flash` | Responses API 仅支持 `deepseek-flash` 或 `deepseek-v4-pro`；其他值会在发起请求前被拒绝 |
+| `AI_TUTOR_CATALOG_PATH` | 可选 | `data/problem_catalog.json` | 题库路径，主要用于测试或演示隔离；文件必须存在且结构合法 |
+
+`python-dotenv` 按 UTF-8 读取项目根目录 `.env`，`override=False`，已有进程环境变量优先。
+
+**真实 API 已由项目负责人实际测试通过**（不属于自动化测试）。早期 Chat Completions 请求曾因模型响应缺少 `hints` 被严格校验拒绝；迁移到 Responses API 后，项目负责人已在本地实网验收。仓库内自动化测试仍只使用模拟 HTTP；默认模型、账号可用性和 Schema 参数需以你的账号和[官方文档](https://api-docs.deepseek.com/)为准。真实请求返回 400/422 时，请核对 `DEEPSEEK_MODEL` 与官方参数。
 
 ## 当前功能
 
@@ -41,11 +58,11 @@ Set-Location 'D:\Projects\Python\ai-programming-tutor'
 
 ## AI 诊断的实际范围
 
-练习页通过 `analyze_code(code, problem)` 调用 **DeepSeek API**，发送当前题目的摘要、示例、约束等上下文和代码，接收错误类型、知识点、分析及恰好三条递进 Hint。Prompt 保存在 `prompts/diagnose_prompt.txt`，要求只给启发和定位方向，不给完整答案；模型的教学质量仍需人工检查。响应按 JSON 严格校验非空必填字段及三条非空 Hint，失败不会当作成功诊断保存。
+练习页通过 `analyze_code(code, problem)` 调用 **DeepSeek Responses API**（`POST /responses`）。请求发送当前题目的摘要、示例、约束等上下文和代码，并通过 `text.format` 的 `json_schema` 约束 `error_type`、`knowledge`、`analysis` 和 `hints` 四个字段；`reasoning.effort=none` 关闭思考模式。`hints` 数组长度不由 schema 单独保证，仍由 `_strict_diagnosis` 要求恰好三条非空字符串。Prompt 保存在 `prompts/diagnose_prompt.txt`，要求只给启发和定位方向，不给完整答案；模型的教学质量仍需人工检查。响应缺字段、类型错误或 Hint 不合格时不会当作成功诊断保存。
 
 服务端使用 `python-dotenv` 按 UTF-8 加载项目根目录 `.env`，`override=False`，已有进程环境变量优先。该文件只需配置 `DEEPSEEK_API_KEY`，可选 `DEEPSEEK_MODEL`；不在页面、日志或 Git 中展示密钥。每次点击会向 DeepSeek 发送代码，可能产生 API 费用，请勿在练习代码中放入秘密信息。
 
-根据本次核对的[官方文档](https://api-docs.deepseek.com/)，默认请求模型为 `deepseek-flash`，对该模型显式关闭思考模式（`thinking.type=disabled`）。可通过 `DEEPSEEK_MODEL` 配置账号可用的模型；旧模型 ID 不附加新模型的 `thinking` 开关，这不代表旧 ID 仍获官方支持。结构化响应遵循 [JSON Output](https://api-docs.deepseek.com/guides/json_mode/)，认证、余额、限流等状态参照[官方错误码](https://api-docs.deepseek.com/quick_start/error_codes/)。
+当前实现使用 [Responses API](https://api-docs.deepseek.com/guides/responses_api)，默认请求 `deepseek-flash`，请求参数包含 `reasoning: {"effort": "none"}`、`max_output_tokens: 1800` 和 `text.format` 的 `json_schema`。`DEEPSEEK_MODEL` 仅支持 `deepseek-flash` 与 `deepseek-v4-pro`；其他值会在发起请求前被拒绝。实现依据[Responses API 参考](https://api-docs.deepseek.com/zh-cn/api/create-response/)与[模型与价格](https://api-docs.deepseek.com/quick_start/pricing/)；**项目负责人已在本地实网测试通过**，该验收不属于仓库自动化测试。认证、余额、限流等状态参照[官方错误码](https://api-docs.deepseek.com/quick_start/error_codes/)。
 
 HTTP 连接及读取操作设置 30 秒超时，不自动重试。401、402、429、超时、空响应、非法 JSON 和缺字段都会清楚报错并保留草稿；**不会自动回退为规则 / Mock**。本地规则仍作为显式兼容接口保留，其结果标为“本地规则 / Mock”，不冒充 DeepSeek。每次请求使用题号、代码和唯一请求标识隔离结果，编辑、切题或发起更新的请求后丢弃旧响应。
 
@@ -57,23 +74,26 @@ HTTP 连接及读取操作设置 30 秒超时，不自动重试。401、402、42
 
 本版本以本地题库为稳定默认来源，不调用未公开、可能变化或受限的 LeetCode GraphQL 接口，不批量抓取官方全文。因此离线或接口不可用时仍可搜索、筛选和练习；查看官方完整题面需要网络。本版本提供精选本地题库搜索，没有提供全量在线题库搜索。
 
+读取题库时会校验 JSON 根节点、必填字段、字段类型、题号唯一性、难度枚举、学习阶段 1–8、标签/约束/示例结构及官方链接格式。文件缺失、JSON 损坏或结构非法时，仪表盘和练习页显示中文错误并停止渲染，不会静默当作空题库。校验结果按文件版本（路径、修改时间、大小）缓存，文件更新后自动重读；对外返回独立副本，页面不能修改缓存。空学习阶段是允许的，推荐阶段无题时页面会提示而不是崩溃。
+
 扩展时按已有 JSON 对象增加唯一整数 `id`，以及 `title_zh`、`title_en`、`slug`、`difficulty`、`tags`、`stage`、`summary`、`examples`、`constraints`、`python_template`、`official_url`、`source_note`。阶段为 1–8；添加可合法使用的摘要/示例并核对官方元数据。回归测试检查题号唯一、阶段覆盖及模板语法。
 
 ## 数据保护与存储边界
 
 正式诊断文件仍为 `data/records.json`，已有历史不做启动迁移、不删除条目。新诊断附带 `record_id`、`leetcode_id`、`title`、`created_at`、`hints_used`、`source`、`model` 和 `is_mock`；展开 Hint 只更新该条新记录。缺失的旧日期和来源等元数据展示为“未记录”，不推测旧记录来自模型。刷题活动独立保存到 `data/activities.json`，缺文件时读取为空活动，首次主动保存才创建。
 
-两个本地数据文件均被 Git 忽略。保存采用完整读改写锁、同目录临时文件及原子替换；损坏 JSON 或错误根节点会报错，避免当作空历史覆盖。并发保障针对**单个 Python 进程中的多会话**；多进程部署需共享数据库或额外进程间锁。原子替换不等同于断电持久化，长期使用请备份数据目录。
+两个本地数据文件均被 Git 忽略。读取和写入 `records.json` 时会拒绝 `NaN`、`Infinity`、`-Infinity` 等非标准 JSON 数值；普通 JSON 语法错误会报告中文行号、列号，不会把损坏文件当作空历史。保存采用完整读改写锁、同目录临时文件及原子替换；损坏 JSON 或错误根节点会报错，避免当作空历史覆盖。并发保障针对**单个 Python 进程中的多会话**；多进程部署需共享数据库或额外进程间锁。原子替换不等同于断电持久化，长期使用请备份数据目录。
 
 测试或演示可用环境变量隔离数据：
 
 ```powershell
 $env:AI_TUTOR_RECORDS_PATH = 'D:\Temp\ai-tutor-demo\records.json'
 $env:AI_TUTOR_ACTIVITIES_PATH = 'D:\Temp\ai-tutor-demo\activities.json'
+$env:AI_TUTOR_CATALOG_PATH = 'D:\Temp\ai-tutor-demo\problem_catalog.json'
 & 'D:\anaconda\envs\ai-study\python.exe' -m streamlit run app.py
 ```
 
-路径可不存在，实际保存时创建父目录。结束后使用 `Remove-Item Env:AI_TUTOR_RECORDS_PATH, Env:AI_TUTOR_ACTIVITIES_PATH -ErrorAction SilentlyContinue` 恢复默认路径。
+记录和活动路径可以不存在，首次保存时创建父目录；题库路径必须指向已存在且结构合法的 JSON 文件。结束后使用 `Remove-Item Env:AI_TUTOR_RECORDS_PATH, Env:AI_TUTOR_ACTIVITIES_PATH, Env:AI_TUTOR_CATALOG_PATH -ErrorAction SilentlyContinue` 恢复默认路径。
 
 ## 验证
 
@@ -82,6 +102,32 @@ $env:AI_TUTOR_ACTIVITIES_PATH = 'D:\Temp\ai-tutor-demo\activities.json'
 git diff --check
 git diff --cached --check
 git status --short
+git check-ignore -v .env data/records.json data/activities.json
+git status --short -- .env.example
 ```
 
-自动化测试使用临时目录、虚构输入和模拟 HTTP 响应，不联网、不加载真实密钥、不写正式学习记录或提交数据。覆盖 DeepSeek 请求与失败响应、三级 Hint、草稿及过时请求隔离、题库、活动幂等/并发、提交与通过分离、365 天热力图、时区与连续天数、来源展示、旧记录兼容及页面流程。
+自动化测试使用临时目录、虚构输入和模拟 HTTP 响应，不联网、不加载真实密钥、不写正式学习记录或提交数据。覆盖 DeepSeek Responses 结构化请求参数与输出解析、状态/空输出/非法 JSON/超时等失败响应、三级 Hint、草稿及过时请求隔离、题库缺失/损坏/结构校验/空阶段/缓存刷新、records 非法 JSON 与非标准常量、活动幂等/并发、提交与通过分离、365 天热力图、时区与连续天数、来源展示、旧记录兼容及页面流程。
+
+## 发布前验证状态
+
+**已实现**
+
+- 本地题库、八阶段路线、搜索筛选、逐题练习、会话级草稿、DeepSeek 诊断、三级 Hint、学习历史、提交绿墙。
+- 题库加载校验与中文错误提示；按文件版本缓存且不会返回共享可变对象。
+- `records.json` 的严格 JSON 读取/写入与原子保存；损坏或非法数据不会被静默覆盖。
+- 提交与“用户自报通过”分离，诊断来源明确标记 `deepseek` 或本地规则 / Mock。
+
+**已验证（自动化）**
+
+- 当前 81 项 `unittest` 全部通过，使用临时数据和模拟 HTTP，不调用真实 API。
+- 自动化测试不会写入正式数据；AppTest 会对正式 `data/records.json` 与 `data/problem_catalog.json` 做前后哈希校验。
+- 页面级测试确认题库损坏时仪表盘与练习页给出中文错误、空阶段不会崩溃。
+
+**Mock 测试与真实 API 验收是两件事**
+
+- **真实 API 已由项目负责人实际测试通过**；未记录原始响应或密钥。仓库内自动化测试仍全部使用模拟 HTTP。
+- 默认模型 `deepseek-flash`、账号可用性、Schema 的实际约束效果和 `reasoning.effort=none` 参数已由负责人实网确认；如需复现，请使用自己的账号和临时数据目录。
+- 最新界面尚未做人工浏览器验收。
+- 学生代码不会执行，没有运行沙箱；没有 LeetCode 官方判题同步、全量在线题库、账号与多用户隔离。
+- 数据并发保护仅限单个 Python 进程；多进程部署需要外部协调。
+- 按当前产品定位，不开发桌面端。

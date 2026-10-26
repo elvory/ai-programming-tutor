@@ -57,6 +57,46 @@ class RecordServiceTests(unittest.TestCase):
                     record_service.update_record("r1", {"hint_level": 2})
                 self.assertEqual(self.path.read_bytes(), before)
 
+    def test_malformed_json_reports_chinese_line_and_column_without_overwriting(self):
+        self.path.write_text("{broken", encoding="utf-8")
+        before = self.path.read_bytes()
+        with self.assertRaisesRegex(ValueError, "JSON 解析失败：第 1 行第 2 列格式错误"):
+            record_service.load_records()
+        with self.assertRaises(ValueError):
+            record_service.save_record(self.valid_record())
+        self.assertEqual(self.path.read_bytes(), before)
+        self.assertEqual(list(self.path.parent.glob(".records-*.tmp")), [])
+
+    def test_nonstandard_json_constants_in_file_are_rejected_without_overwriting(self):
+        for content in ("[NaN]", "[Infinity]", "[-Infinity]"):
+            with self.subTest(content=content):
+                self.path.write_text(content, encoding="utf-8")
+                before = self.path.read_bytes()
+                with self.assertRaises(ValueError):
+                    record_service.load_records()
+                with self.assertRaises(ValueError):
+                    record_service.save_record(self.valid_record())
+                with self.assertRaises(ValueError):
+                    record_service.update_record("r1", {"hint_level": 2})
+                self.assertEqual(self.path.read_bytes(), before)
+                self.assertEqual(list(self.path.parent.glob(".records-*.tmp")), [])
+
+    def test_new_records_containing_nan_or_infinity_are_rejected_and_never_written(self):
+        for change in ({"extra": float("nan")}, {"extra": float("inf")},
+                       {"extra": float("-inf")}):
+            with self.subTest(change=change):
+                if self.path.exists():
+                    self.path.unlink()
+                with self.assertRaises(ValueError):
+                    record_service.save_record(self.valid_record(record_id="r1", **change))
+                self.assertFalse(self.path.exists())
+                record_service.save_record(self.valid_record(record_id="r1"))
+                before = self.path.read_bytes()
+                with self.assertRaises(ValueError):
+                    record_service.update_record("r1", change)
+                self.assertEqual(self.path.read_bytes(), before)
+                self.assertEqual(list(self.path.parent.glob(".records-*.tmp")), [])
+
     def test_failed_validation_serialization_or_replace_preserves_formal_target(self):
         record_service.save_record(self.valid_record(record_id="r1"))
         before = self.path.read_bytes()

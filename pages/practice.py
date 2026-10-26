@@ -8,7 +8,7 @@ from services.activity_service import load_activities, mark_accepted, record_sub
 from services.llm_service import DiagnosisError, analyze_code, normalize_diagnosis
 from services.practice_service import (begin_diagnosis, clear_diagnosis, diagnosis_request_is_current,
                                        reveal_next_hint, save_draft, select_problem, set_diagnosis)
-from services.problem_service import get_problem, load_problems, search_problems
+from services.problem_service import CatalogError, load_problems, search_problems
 from services.record_service import save_record, update_record
 from utils.ui import configure_page
 
@@ -21,7 +21,12 @@ configure_page("代码练习 · AI Programming Tutor")
 st.title("选一道题，开始思考。")
 st.caption("离线精选题库 · 原创练习摘要与示例 · 完整题面及最终判题以 LeetCode 官方页面为准")
 
-problems = load_problems()
+try:
+    problems = load_problems()
+except CatalogError as exc:
+    st.error(f"题库加载失败：{exc}")
+    st.caption("请修复 data/problem_catalog.json 后刷新页面。当前会话草稿与学习记录未受影响。")
+    st.stop()
 requested = st.session_state.pop("requested_problem_id", None)
 if requested is not None:
     st.session_state["problem_search"] = ""
@@ -40,14 +45,15 @@ if not matches:
     st.stop()
 
 ids = [p["id"] for p in matches]
+by_id = {p["id"]: p for p in problems}
 if st.session_state.get("problem_picker") not in ids:
     preferred = st.session_state.get("selected_problem_id")
     st.session_state["problem_picker"] = preferred if preferred in ids else ids[0]
 problem_id = st.selectbox(
     "选择题目", ids, key="problem_picker",
-    format_func=lambda pid: f"#{pid} · {get_problem(pid)['title_zh']} / {get_problem(pid)['title_en']}",
+    format_func=lambda pid: f"#{pid} · {by_id[pid]['title_zh']} / {by_id[pid]['title_en']}",
 )
-problem = get_problem(problem_id)
+problem = by_id[problem_id]
 draft = select_problem(st.session_state, problem)
 notice = st.session_state.pop("practice_notice", None)
 if notice:
