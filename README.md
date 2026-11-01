@@ -1,8 +1,23 @@
-# AI Programming Tutor V2.0
+# AI Programming Tutor · V3 Workbench
 
-基于 Python + Streamlit 的算法练习与渐进式编程辅导工具。通过选题、编写代码、问题分析和逐级 Hint，引导学习者自主解决问题。
+基于现有 Python 业务服务的算法练习与渐进式编程辅导工具。新版采用 React + TypeScript + Monaco 三栏工作台，FastAPI 只负责连接界面与既有服务；原 Streamlit + Ace 页面保留可运行。
 
-## 运行
+## 新版工作台运行
+
+在项目根目录执行（已有 `.env` 保持原样，不需要复制或重新配置）：
+
+```powershell
+& 'D:\anaconda\envs\ai-study\python.exe' -m pip install -r requirements.txt
+npm.cmd --prefix frontend ci
+npm.cmd --prefix frontend run build
+.\scripts\start_workbench.ps1
+```
+
+打开 `http://127.0.0.1:8000`。工作台、学习路线、绿墙与历史使用同一组 Python 题库和记录服务。编辑器草稿在当前浏览器按题持久化，刷新和切页可恢复；诊断不会覆盖代码。第一次从仍然打开的旧 Streamlit 会话迁移时，先在旧练习页「导出当前会话草稿到新版工作台」下载 JSON，再在新版草稿菜单导入，冲突保留新版已有稿。
+
+开发模式、接口契约、迁移边界与验收方式见 [工作台说明](docs/workbench.md)。新版不包含 Python 代码执行器；测试面板只显示题库示例和预期输出，不伪造运行结果。
+
+## 保留的 Streamlit 运行方式
 
 环境要求：Python 3.10+（本项目在 Python 3.10.20 的 `ai-study` 环境验证）。以下命令使用该环境；如果你的 Python 路径不同，请替换为实际路径。
 
@@ -11,32 +26,33 @@
 ```powershell
 Set-Location 'D:\Projects\Python\ai-programming-tutor'
 & 'D:\anaconda\envs\ai-study\python.exe' -m pip install -r requirements.txt
-Copy-Item .env.example .env   # 仅首次配置；随后在 .env 中填写真实密钥
+if (-not (Test-Path -LiteralPath '.env')) { Copy-Item .env.example .env }  # 仅首次配置
 & 'D:\anaconda\envs\ai-study\python.exe' -m streamlit run app.py
 ```
 
-打开终端显示的本地网址。侧栏包含学习仪表盘、选题与练习、学习记录。依赖为 `streamlit==1.50.0` 和 `python-dotenv==1.2.2`，测试使用标准库 `unittest` 和 Streamlit 自带的 `AppTest`。
+打开终端显示的本地网址。侧栏包含学习仪表盘、选题与练习、学习记录。依赖为 `streamlit==1.50.0`、`streamlit-code-editor==0.1.22` 和 `python-dotenv==1.2.2`，测试使用标准库 `unittest` 和 Streamlit 自带的 `AppTest`。
 
 ## 配置
 
 首次使用请复制 `.env.example` 为 `.env`，填写服务端密钥。`.env` 已被 Git 忽略，不要提交；`.env.example` 只保留占位值，可以被 Git 跟踪。
 
-| 变量 | 必填 | 默认值 | 说明 |
-| --- | --- | --- | --- |
-| `DEEPSEEK_API_KEY` | AI 诊断必填 | 无 | 配置在服务端 `.env` 或进程环境变量中；不在页面、日志或 Git 中展示 |
-| `DEEPSEEK_MODEL` | 可选 | `deepseek-flash` | Responses API 仅支持 `deepseek-flash` 或 `deepseek-v4-pro`；其他值会在发起请求前被拒绝 |
-| `AI_TUTOR_CATALOG_PATH` | 可选 | `data/problem_catalog.json` | 题库路径，主要用于测试或演示隔离；文件必须存在且结构合法 |
+| 变量                    | 必填        | 默认值                      | 说明                                                                                   |
+| ----------------------- | ----------- | --------------------------- | -------------------------------------------------------------------------------------- |
+| `DEEPSEEK_API_KEY`      | AI 诊断必填 | 无                          | 配置在服务端 `.env` 或进程环境变量中；不在页面、日志或 Git 中展示                      |
+| `DEEPSEEK_MODEL`        | 可选        | `deepseek-flash`            | Responses API 仅支持 `deepseek-flash` 或 `deepseek-v4-pro`；其他值会在发起请求前被拒绝 |
+| `AI_TUTOR_CATALOG_PATH` | 可选        | `data/problem_catalog.json` | 题库路径，主要用于测试或演示隔离；文件必须存在且结构合法                               |
 
 `python-dotenv` 按 UTF-8 读取项目根目录 `.env`，`override=False`，已有进程环境变量优先。
 
 **真实 API 已由项目负责人实际测试通过**（不属于自动化测试）。早期 Chat Completions 请求曾因模型响应缺少 `hints` 被严格校验拒绝；迁移到 Responses API 后，项目负责人已在本地实网验收。仓库内自动化测试仍只使用模拟 HTTP；默认模型、账号可用性和 Schema 参数需以你的账号和[官方文档](https://api-docs.deepseek.com/)为准。真实请求返回 400/422 时，请核对 `DEEPSEEK_MODEL` 与官方参数。
 
-## 当前功能
+## 兼容版 Streamlit 功能（与新版共享 Python 服务）
 
 - **学习仪表盘**：真实本地提交总数、用户自报通过的不同题目数、连续提交天数、下一推荐阶段。
 - **八阶段路线**：数组与哈希表、双指针与滑动窗口、栈/队列/二分、链表、二叉树与递归、DFS/BFS/回溯、贪心、动态规划。
 - **32 道精选题**：按精确题号、中文/英文题名搜索；难度筛选和算法标签组合筛选（所选标签全部匹配）；练习摘要、示例、约束、官方链接和 Python 模板。
-- **独立草稿**：每题通过 Session State 保存，切题、切页后恢复；查看 Hint、诊断和重运行不会覆盖代码。草稿只在当前浏览器会话内保留，关闭或刷新会话前请自行备份。
+- **在线代码编辑器**：练习页使用 `streamlit-code-editor`（Ace）提供 Python 语法高亮、行号、自动缩进和深色主题；左侧题目/编辑器、右侧 AI 诊断的在线工作台布局。
+- **独立草稿**：每题通过 Session State 保存，编辑停顿、失焦、点击操作、切题或切页时同步，并可在返回时恢复；查看 Hint、诊断和重运行不会覆盖代码。草稿只在当前浏览器会话内保留，关闭或刷新会话前请自行备份。
 - **渐进辅导**：DeepSeek 结合当前题目与代码生成分析、错误类型、知识点和三级 Hint。切题、修改代码或开始新诊断会清除旧结果及 Hint 进度；过时请求的响应不保存。
 - **刷题绿墙**：过去 365 天，按北京时间统计主动记录的本地提交。颜色对应每日 0、1、2、3、4 次及以上；悬停查看日期和次数。
 - **兼容历史**：保留旧记录、不完整记录及非字典异常条目；展示题号、题名、时间、Hint 使用、诊断来源、请求模型和用户自报通过状态。活动与诊断分别展示。
@@ -44,11 +60,11 @@ Copy-Item .env.example .env   # 仅首次配置；随后在 .env 中填写真实
 
 ## 三类操作的区别
 
-| 操作 | 保存位置 | 增加提交/绿墙 | 增加完成数 |
-| --- | --- | --- | --- |
-| AI 诊断 / 重新诊断 | `data/records.json` | 否 | 否 |
-| 记录一次本地提交 | `data/activities.json`，`kind=submission` | 是，每次主动点击计一次 | 否 |
-| 记录 LeetCode 已通过 | `data/activities.json`，`kind=accepted` | 否 | 按不同题号去重 |
+| 操作                 | 保存位置                                  | 增加提交/绿墙          | 增加完成数     |
+| -------------------- | ----------------------------------------- | ---------------------- | -------------- |
+| AI 诊断 / 重新诊断   | `data/records.json`                       | 否                     | 否             |
+| 记录一次本地提交     | `data/activities.json`，`kind=submission` | 是，每次主动点击计一次 | 否             |
+| 记录 LeetCode 已通过 | `data/activities.json`，`kind=accepted`   | 否                     | 按不同题号去重 |
 
 通过按钮需要勾选用户确认。这是**用户自报状态**，没有登录 LeetCode、查询判题结果或同步官方提交。学生代码不会在本地执行，不提供执行沙箱。
 

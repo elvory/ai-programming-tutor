@@ -81,6 +81,23 @@ class AppFlowTests(unittest.TestCase):
         self.assertEqual(len(app.exception), 0)
         return app
 
+    def set_editor(self, app, problem_id, text):
+        """Mirror the payload emitted by the Ace component on change/blur.
+
+        AppTest cannot type into a custom component iframe, so inject the same
+        dictionary the component returns. The practice page still executes its
+        real pre-sync, draft, diagnosis, and submission paths.
+        """
+        app.session_state._state._new_session_state[f"code_editor_{problem_id}__ace"] = {
+            "id": "unit-test", "type": "change", "lang": "python",
+            "text": text, "selected": "", "cursor": {"row": 0, "column": 0},
+        }
+        app.run()
+        self.assertEqual(len(app.exception), 0)
+
+    def editor_value(self, app, problem_id):
+        return app.session_state[f"code_editor_{problem_id}"]
+
     def test_dashboard_has_real_zero_metrics_and_eight_stages(self):
         app = self.app()
         self.assertEqual([metric.value for metric in app.metric], ["0", "0", "0", "第 1 阶段"])
@@ -102,6 +119,41 @@ class AppFlowTests(unittest.TestCase):
         self.assertTrue(any("没有匹配" in item.value for item in app.info))
         self.assertEqual(len(app.exception), 0)
 
+    def test_ace_editor_replaces_text_area_and_syncs_component_payload(self):
+        app = self.practice()
+        self.assertEqual(len(app.text_area), 0)
+        instances = app.get("component_instance")
+        self.assertEqual(len(instances), 1)
+        args = json.loads(instances[0].proto.json_args)
+        self.assertEqual(args["lang"], "python")
+        self.assertEqual(args["theme"], "dark")
+        self.assertEqual(args["shortcuts"], "vscode")
+        self.assertEqual(args["height"], "560px")
+        self.assertEqual(args["response_mode"], ["debounce", "blur"])
+        self.assertFalse(args["allow_reset"])
+        self.assertEqual(args["options"]["tabSize"], 4)
+        self.assertTrue(args["props"]["showGutter"])
+        self.assertEqual(args["props"]["debounceChangePeriod"], 800)
+        self.assertEqual(args["code"], app.session_state["drafts"]["1"])
+
+        edited = "# ace payload\nprint('synced')"
+        self.set_editor(app, 1, edited)
+        self.assertEqual(self.editor_value(app, 1), edited)
+        self.assertEqual(app.session_state["drafts"]["1"], edited)
+        refreshed = json.loads(app.get("component_instance")[0].proto.json_args)
+        self.assertEqual(refreshed["code"], edited)
+        self.assertEqual(len(app.text_area), 0)
+
+    def test_workspace_has_no_fake_run_button_and_states_execution_limits(self):
+        app = self.practice()
+        self.assertFalse(any(button.label.strip() in ("运行", "Run") for button in app.button))
+        self.assertTrue(any("AI 诊断" in button.label for button in app.button))
+        self.assertTrue(any(button.key == "record_submission" for button in app.button))
+        rendered = " ".join(item.value for item in app.markdown)
+        self.assertIn("未启用", rendered)
+        self.assertIn("示例测试", rendered)
+        self.assertTrue(any("没有安全判题器" in item.value for item in app.caption))
+
     def test_completed_route_recommends_review_in_the_last_stage(self):
         for problem in load_problems():
             mark_accepted(problem["id"], problem["title_zh"])
@@ -113,30 +165,30 @@ class AppFlowTests(unittest.TestCase):
     def test_draft_survives_hint_rerun_problem_switch_and_navigation(self):
         app = self.practice()
         edited = "# synthetic first draft\nprint('first')"
-        app.text_area(key="code_editor_1").set_value(edited).run()
+        self.set_editor(app, 1, edited)
         app.button(key="diagnose").click().run()
-        self.assertEqual(app.text_area(key="code_editor_1").value, edited)
+        self.assertEqual(self.editor_value(app, 1), edited)
         app.button(key="next_hint").click().run()
         self.assertEqual(app.session_state["hint_level"], 2)
-        self.assertEqual(app.text_area(key="code_editor_1").value, edited)
+        self.assertEqual(self.editor_value(app, 1), edited)
         self.assertEqual(load_records()[1]["hints_used"], [1, 2])
         app.selectbox(key="problem_picker").set_value(20).run()
         self.assertIsNone(app.session_state["diagnosis"])
         second = "# synthetic second draft\nprint('second')"
-        app.text_area(key="code_editor_20").set_value(second).run()
+        self.set_editor(app, 20, second)
         app.selectbox(key="problem_picker").set_value(1).run()
-        self.assertEqual(app.text_area(key="code_editor_1").value, edited)
+        self.assertEqual(self.editor_value(app, 1), edited)
         self.assertIsNone(app.session_state["diagnosis"])
         app.switch_page("pages/history.py").run()
         self.assertEqual(len(app.exception), 0)
         app.switch_page("pages/practice.py").run()
-        self.assertEqual(app.text_area(key="code_editor_1").value, edited)
+        self.assertEqual(self.editor_value(app, 1), edited)
         self.assertEqual(app.session_state["drafts"]["20"], second)
         self.assertEqual(len(app.exception), 0)
 
     def test_diagnosis_submission_and_acceptance_are_distinct(self):
         app = self.practice()
-        app.text_area(key="code_editor_1").set_value("print('synthetic')").run()
+        self.set_editor(app, 1, "print('synthetic')")
         app.button(key="diagnose").click().run()
         self.assertEqual(load_activities(), [])
         self.assertEqual(load_records()[0], {"question": "synthetic legacy record"})
@@ -199,7 +251,7 @@ class AppFlowTests(unittest.TestCase):
     def test_deepseek_source_is_displayed_and_saved_with_three_progressive_hints(self):
         app = self.practice()
         edited = "# 中文虚构测试\nprint('synthetic')"
-        app.text_area(key="code_editor_1").set_value(edited).run()
+        self.set_editor(app, 1, edited)
         app.button(key="diagnose").click().run()
         self.assertEqual(len(app.exception), 0)
         self.assertEqual(self.http.call_count, 1)
@@ -224,13 +276,13 @@ class AppFlowTests(unittest.TestCase):
         self.assertEqual(self.http.call_count, 2)
         self.assertEqual(app.session_state["hint_level"], 1)
         self.assertEqual(load_records()[-1]["hints_used"], [1])
-        self.assertEqual(app.text_area(key="code_editor_1").value, edited)
+        self.assertEqual(self.editor_value(app, 1), edited)
         self.assertEqual(load_activities(), [])
 
     def test_deepseek_failures_keep_draft_without_saving_diagnosis_or_activity(self):
         app = self.practice()
         edited = "# 测试草稿\nprint('synthetic failure case')"
-        app.text_area(key="code_editor_1").set_value(edited).run()
+        self.set_editor(app, 1, edited)
         app.button(key="diagnose").click().run()
         self.assertEqual(app.session_state["diagnosis"]["source"], "deepseek")
         baseline = self.records_path.read_bytes()
@@ -257,16 +309,16 @@ class AppFlowTests(unittest.TestCase):
                 self.assertFalse(self.activities_path.exists())
                 self.assertIsNone(app.session_state["diagnosis"])
                 self.assertEqual(app.session_state["drafts"]["1"], edited)
-                self.assertEqual(app.text_area(key="code_editor_1").value, edited)
+                self.assertEqual(self.editor_value(app, 1), edited)
                 self.assertFalse(any(button.key == "next_hint" for button in app.button))
 
     def test_editing_code_removes_old_diagnosis_and_hint_controls(self):
         app = self.practice()
-        app.text_area(key="code_editor_1").set_value("print('first')").run()
+        self.set_editor(app, 1, "print('first')")
         app.button(key="diagnose").click().run()
         app.button(key="next_hint").click().run()
         baseline = self.records_path.read_bytes()
-        app.text_area(key="code_editor_1").set_value("print('edited')").run()
+        self.set_editor(app, 1, "print('edited')")
         self.assertIsNone(app.session_state["diagnosis"])
         self.assertEqual(app.session_state["hint_level"], 1)
         self.assertFalse(any(button.key == "next_hint" for button in app.button))
@@ -280,7 +332,7 @@ class AppFlowTests(unittest.TestCase):
         for key, value in cases:
             with self.subTest(changed=key):
                 app = self.practice()
-                app.text_area(key="code_editor_1").set_value("print('request snapshot')").run()
+                self.set_editor(app, 1, "print('request snapshot')")
                 baseline = self.records_path.read_bytes()
 
                 def response_after_change(*args, **kwargs):
