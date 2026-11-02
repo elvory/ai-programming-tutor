@@ -14,6 +14,8 @@ from threading import Lock
 from time import sleep
 from uuid import uuid4
 
+from services.language_service import LANGUAGES, validate_language
+
 
 FILE_PATH = Path(__file__).resolve().parents[1] / "data" / "activities.json"
 SHANGHAI = timezone(timedelta(hours=8), "Asia/Shanghai")
@@ -74,6 +76,8 @@ def validate_activity(activity):
     identity = "submission_id" if kind == "submission" else "event_id"
     if not isinstance(activity.get(identity), str) or not activity[identity].strip():
         raise ValueError(f"{identity} 必须是非空字符串。")
+    if "language" in activity:
+        validate_language(activity["language"])
     if "diagnosis" in activity and activity["diagnosis"] is not None and not isinstance(activity["diagnosis"], dict):
         raise ValueError("diagnosis 快照必须是字典。")
     if "hints_used" in activity:
@@ -122,6 +126,10 @@ def _append_event(event):
                 validate_activity(old)
                 if old["problem_id"] != event["problem_id"]:
                     raise ValueError("同一活动 ID 不能用于不同题目。")
+                # A retry of a pre-language event must preserve its unknown
+                # language rather than rewriting or rejecting old data.
+                if "language" in old and old["language"] != event.get("language"):
+                    raise ValueError("同一活动 ID 不能用于不同语言。")
                 return old
         activities.append(event)
         _write_activities(activities)
@@ -129,10 +137,11 @@ def _append_event(event):
 
 
 def record_submission(problem_id, title, *, submission_id=None, timestamp=None,
-                      diagnosis=None, hints_used=None):
+                      diagnosis=None, hints_used=None, language="python"):
     event = {"kind": "submission", "problem_id": problem_id, "title": title,
              "timestamp": _timestamp(timestamp).isoformat(),
-             "submission_id": uuid4().hex if submission_id is None else submission_id}
+             "submission_id": uuid4().hex if submission_id is None else submission_id,
+             "language": validate_language(language)}
     if diagnosis is not None:
         event["diagnosis"] = diagnosis
     if hints_used is not None:
@@ -140,11 +149,12 @@ def record_submission(problem_id, title, *, submission_id=None, timestamp=None,
     return _append_event(event)
 
 
-def mark_accepted(problem_id, title, *, event_id=None, timestamp=None):
+def mark_accepted(problem_id, title, *, event_id=None, timestamp=None, language="python"):
     """Record a user-reported LeetCode acceptance; this is not a submission."""
     return _append_event({"kind": "accepted", "problem_id": problem_id, "title": title,
                           "timestamp": _timestamp(timestamp).isoformat(),
-                          "event_id": uuid4().hex if event_id is None else event_id})
+                          "event_id": uuid4().hex if event_id is None else event_id,
+                          "language": validate_language(language)})
 
 
 def _today(value):
@@ -183,12 +193,15 @@ def summarize_activity(activities, problems, today=None):
     today = _today(today)
     counts = {}
     completed = set()
+    completed_by_language = {language: set() for language in LANGUAGES}
     for activity, event_date in _valid_events(activities, today):
         if activity["kind"] == "submission":
             day = event_date.isoformat()
             counts[day] = counts.get(day, 0) + 1
         else:
             completed.add(activity["problem_id"])
+            if activity.get("language") in completed_by_language:
+                completed_by_language[activity["language"]].add(activity["problem_id"])
     current = today if today.isoformat() in counts else today - timedelta(days=1)
     streak = 0
     while current.isoformat() in counts:
@@ -207,7 +220,8 @@ def summarize_activity(activities, problems, today=None):
                             if not stages[stage].issubset(completed)), 8 if stages else 1)
     return {"total_submissions": sum(counts.values()), "completed_problems": len(completed),
             "streak_days": streak, "recommended_stage": recommended,
-            "completed_ids": completed, "counts_by_day": dict(sorted(counts.items()))}
+            "completed_ids": completed, "counts_by_day": dict(sorted(counts.items())),
+            "completed_by_language": {language: sorted(ids) for language, ids in completed_by_language.items()}}
 
 
 def build_heatmap(activities, today=None, days=365):

@@ -46,6 +46,7 @@ class ActivityServiceTests(unittest.TestCase):
             "total_submissions": 2, "completed_problems": 1, "streak_days": 2,
             "recommended_stage": 2, "completed_ids": {1},
             "counts_by_day": {"2026-10-20": 1, "2026-10-21": 1},
+            "completed_by_language": {"python": [], "java": [], "c": [], "cpp": []},
         })
         self.assertEqual(activity_service.summarize_activity([], problems, today="2026-10-22")["recommended_stage"], 1)
 

@@ -11,7 +11,7 @@ from datetime import datetime
 from pathlib import Path
 from threading import Lock, RLock
 from time import monotonic
-from typing import Optional
+from typing import Literal, Optional
 from uuid import UUID, uuid4
 
 from fastapi import FastAPI, HTTPException, Query
@@ -23,8 +23,9 @@ from pydantic import BaseModel, Field
 from services.activity_service import (SHANGHAI, build_heatmap, load_activities,
                                        mark_accepted, record_submission, summarize_activity)
 from services.history_service import build_activity_rows, build_history_rows
+from services.capability_service import build_capability_profile
 from services.llm_service import DiagnosisError, analyze_code, normalize_diagnosis
-from services.practice_service import (begin_diagnosis, clear_diagnosis, diagnosis_request_is_current,
+from services.practice_service import (begin_diagnosis, clear_diagnosis, diagnosis_request_is_current, draft_key,
                                       reveal_next_hint, save_draft, select_problem, set_diagnosis)
 from services.problem_service import get_learning_route, get_problem, load_problems, search_problems
 from services.record_service import load_records, save_record, update_record
@@ -35,6 +36,7 @@ class Snapshot(BaseModel):
     problem_id: int = Field(gt=0, strict=True)
     code: str
     revision: int = Field(ge=0, strict=True)
+    language: Literal["python", "java", "c", "cpp"] = "python"
 
 
 class Acceptance(BaseModel):
@@ -58,6 +60,7 @@ class AcceptedProblem(BaseModel):
     problem_id: int = Field(gt=0, strict=True)
     confirmed: bool = Field(strict=True)
     event_id: UUID
+    language: Literal["python", "java", "c", "cpp"] = "python"
 
 
 @dataclass
@@ -113,15 +116,22 @@ def _problem(problem_id):
 
 
 def _stale():
-    return HTTPException(409, "题目、代码或请求已更新，本次过时结果已丢弃。")
+    return HTTPException(409, "题目、语言、代码或请求已更新，本次过时结果已丢弃。")
 
 
 def _sync(entry, snapshot, problem):
     """Called under a workspace lock; stale browser messages cannot roll back state."""
+    template = (problem.get("python_template") if snapshot.language == "python"
+                else problem.get("templates", {}).get(snapshot.language))
+    if not isinstance(template, str) or not template.strip():
+        # Custom catalogs may intentionally contain only their legacy Python
+        # template. Reject before clearing a valid existing workspace result.
+        raise HTTPException(422, "当前题目暂未提供所选语言的模板，请选择已有模板的语言。")
     if snapshot.revision < entry.revision:
         raise _stale()
     same_input = (entry.state.get("selected_problem_id") == snapshot.problem_id
-                  and entry.state.get("drafts", {}).get(str(snapshot.problem_id)) == snapshot.code)
+                  and entry.state.get("selected_language", "python") == snapshot.language
+                  and entry.state.get("drafts", {}).get(draft_key(snapshot.problem_id, snapshot.language)) == snapshot.code)
     if snapshot.revision == entry.revision and not same_input:
         raise _stale()
     if snapshot.revision > entry.revision:
@@ -134,8 +144,8 @@ def _sync(entry, snapshot, problem):
         entry.accepted_request_id = None
         entry.accepted_revision = -1
         entry.warning = None
-    select_problem(entry.state, problem)
-    save_draft(entry.state, snapshot.problem_id, snapshot.code)
+    select_problem(entry.state, problem, language=snapshot.language)
+    save_draft(entry.state, snapshot.problem_id, snapshot.code, language=snapshot.language)
     entry.revision = snapshot.revision
     if entry.state.get("diagnosis") is None:
         entry.diagnosis_id = None
@@ -150,7 +160,8 @@ def _public_diagnosis(entry):
     diagnosis["hints"] = diagnosis["hints"][:level]
     return {"diagnosis": diagnosis, "diagnosis_id": entry.diagnosis_id,
             "record_id": entry.state.get("diagnosis_record_id"), "hint_level": level,
-            "hint_count": total, "warning": entry.warning}
+            "hint_count": total, "warning": entry.warning,
+            "language": entry.state.get("diagnosis_language", "python")}
 
 
 def create_app(*, workspace_limit=512):
@@ -175,7 +186,16 @@ def create_app(*, workspace_limit=512):
         problems = load_problems()
         activities = load_activities()
         return {"problems": problems, "route": get_learning_route(),
-                "summary": summarize_activity(activities, problems), "heatmap": build_heatmap(activities)}
+                "summary": summarize_activity(activities, problems), "heatmap": build_heatmap(activities),
+                "capability": build_capability_profile(activities, problems)}
+
+    @app.get("/api/capabilities")
+    def capabilities():
+        return build_capability_profile(load_activities(), load_problems())
+
+    @app.get("/api/problems/{problem_id}")
+    def problem_detail(problem_id: int):
+        return _problem(problem_id)
 
     @app.get("/api/problems")
     def problems(query: str = "", difficulty: Optional[str] = None, tags: list[str] = Query(default=[])):
@@ -197,7 +217,7 @@ def create_app(*, workspace_limit=512):
         problem = _problem(snapshot.problem_id)
         with workspaces.lease(snapshot.workspace_id) as entry, entry.lock:
             _sync(entry, snapshot, problem)
-        return {"revision": snapshot.revision, "problem_id": snapshot.problem_id}
+        return {"revision": snapshot.revision, "problem_id": snapshot.problem_id, "language": snapshot.language}
 
     @app.post("/api/diagnoses")
     def diagnose(snapshot: Snapshot):
@@ -209,13 +229,13 @@ def create_app(*, workspace_limit=512):
         with workspaces.lease(snapshot.workspace_id) as entry:
             with entry.lock:
                 _sync(entry, snapshot, problem)
-                request = begin_diagnosis(entry.state, snapshot.problem_id, snapshot.code)
+                request = begin_diagnosis(entry.state, snapshot.problem_id, snapshot.code, language=snapshot.language)
                 entry.candidate = None
                 entry.diagnosis_id = None
                 entry.accepted_request_id = None
                 entry.warning = None
             try:
-                result = normalize_diagnosis(analyze_code(snapshot.code, problem))
+                result = normalize_diagnosis(analyze_code(snapshot.code, problem, language=snapshot.language))
                 if (result is None or result.get("source") != "deepseek"
                         or result.get("is_mock") is not False):
                     raise DiagnosisError("未获得完整有效的 DeepSeek 诊断结果。")
@@ -255,13 +275,14 @@ def create_app(*, workspace_limit=512):
                 "record_id": record_id, "leetcode_id": problem["id"], "title": problem["title_zh"],
                 "created_at": datetime.now(SHANGHAI).isoformat(), "hints_used": [1],
                 "source": result["source"], "is_mock": result["is_mock"], "model": result.get("model"),
+                "language": request["language"],
             }
             try:
                 save_record(record)
             except (OSError, ValueError, TypeError):
                 record_id = None
                 entry.warning = "诊断已完成，但诊断记录保存失败。请检查记录文件格式和写入权限。"
-            set_diagnosis(entry.state, problem["id"], request["code"], result, record_id)
+            set_diagnosis(entry.state, problem["id"], request["code"], result, record_id, language=request["language"])
             entry.diagnosis_id = str(uuid4())
             entry.accepted_request_id = acceptance.request_id
             entry.accepted_revision = acceptance.revision
@@ -304,9 +325,11 @@ def create_app(*, workspace_limit=512):
             _sync(entry, payload, problem)
             diagnosis = entry.state.get("diagnosis")
             fresh = diagnosis if (entry.state.get("diagnosis_problem_id") == payload.problem_id
+                                   and entry.state.get("diagnosis_language") == payload.language
                                    and entry.state.get("diagnosed_code") == payload.code) else None
             record_submission(payload.problem_id, problem["title_zh"],
                               submission_id=str(payload.submission_id), diagnosis=fresh,
+                              language=payload.language,
                               hints_used=list(range(1, entry.state["hint_level"] + 1)) if fresh else [])
         return {"ok": True}
 
@@ -315,7 +338,7 @@ def create_app(*, workspace_limit=512):
         problem = _problem(payload.problem_id)
         if not payload.confirmed:
             raise HTTPException(422, "请先确认这道题已在 LeetCode 提交并通过。")
-        mark_accepted(problem["id"], problem["title_zh"], event_id=str(payload.event_id))
+        mark_accepted(problem["id"], problem["title_zh"], event_id=str(payload.event_id), language=payload.language)
         return {"ok": True}
 
     # The compiled frontend is optional during development. Vite proxies /api

@@ -1,37 +1,47 @@
-import type { Snapshot } from "./types";
+import type { Language, Snapshot } from "./types";
+import { isLanguage, LANGUAGE_IDS } from "./languages";
 
 const DRAFT_PREFIX = "ai-tutor:draft:v1:";
-export const draftKey = (problemId: number) => `${DRAFT_PREFIX}${problemId}`;
+export const bufferKey = (problemId: number, language: Language = "python") => `${problemId}:${language}`;
+// Keep original Python keys in place: old drafts remain readable without migration writes.
+export const draftKey = (problemId: number, language: Language = "python") => language === "python"
+  ? `${DRAFT_PREFIX}${problemId}`
+  : `ai-tutor:draft:v2:${bufferKey(problemId, language)}`;
 export function restoreCode(
   problemId: number,
   template: string,
   storage: Storage,
+  language: Language = "python",
 ): string {
-  return storage.getItem(draftKey(problemId)) ?? template;
+  return storage.getItem(draftKey(problemId, language)) ?? template;
 }
 export function saveCode(
   problemId: number,
   code: string,
   storage: Storage,
+  language: Language = "python",
 ): void {
-  storage.setItem(draftKey(problemId), code);
+  storage.setItem(draftKey(problemId, language), code);
 }
 export function exportDrafts(
   problemIds: number[],
   storage: Storage,
   overrides: Record<string, string> = {},
 ): string {
-  const drafts: Record<string, string> = {};
+  const drafts: Record<string, Partial<Record<Language, string>>> = {};
   problemIds.forEach((id) => {
-    // A quota failure may leave an older persisted draft behind. The caller
-    // provides only unsaved buffers; an empty buffer is also an intentional edit.
-    const code = Object.prototype.hasOwnProperty.call(overrides, String(id))
-      ? overrides[id]
-      : storage.getItem(draftKey(id));
-    if (code !== null) drafts[id] = code;
+    LANGUAGE_IDS.forEach((language) => {
+      const key = bufferKey(id, language);
+      const overrideKey = Object.prototype.hasOwnProperty.call(overrides, key)
+        ? key : language === "python" && Object.prototype.hasOwnProperty.call(overrides, String(id)) ? String(id) : null;
+      // A quota failure may leave older stored code behind. Even an empty
+      // unsaved buffer takes priority over its persisted version.
+      const code = overrideKey !== null ? overrides[overrideKey] : storage.getItem(draftKey(id, language));
+      if (code !== null) (drafts[id] ??= {})[language] = code;
+    });
   });
   return JSON.stringify(
-    { schema_version: 1, drafts, exported_at: new Date().toISOString() },
+    { schema_version: 2, drafts, exported_at: new Date().toISOString() },
     null,
     2,
   );
@@ -40,6 +50,7 @@ export function importDrafts(
   text: string,
   problemIds: number[],
   storage: Storage,
+  overrides: Record<string, string> = {},
 ) {
   const data: unknown = JSON.parse(text);
   if (
@@ -47,7 +58,7 @@ export function importDrafts(
     typeof data !== "object" ||
     !("drafts" in data) ||
     !("schema_version" in data) ||
-    data.schema_version !== 1
+    ![1, 2].includes(Number(data.schema_version)) || typeof data.schema_version !== "number"
   ) {
     throw new Error("草稿文件格式不正确，请导入本项目导出的 JSON。");
   }
@@ -56,25 +67,36 @@ export function importDrafts(
     !drafts ||
     typeof drafts !== "object" ||
     Array.isArray(drafts) ||
-    Object.entries(drafts).some(
-      ([id, code]) => !/^\d+$/.test(id) || typeof code !== "string",
-    )
+    Object.entries(drafts).some(([id]) => !/^[1-9]\d*$/.test(id))
   ) {
     throw new Error("草稿内容不正确：题号和代码需要使用字符串。");
+  }
+  const entries: Array<[number, Language, string]> = [];
+  for (const [id, value] of Object.entries(drafts)) {
+    const languages: unknown = data.schema_version === 1 ? { python: value } : value;
+    if (!languages || typeof languages !== "object" || Array.isArray(languages))
+      throw new Error("草稿内容不正确：每道题需要包含语言和代码。");
+    for (const [language, code] of Object.entries(languages)) {
+      if (!isLanguage(language) || typeof code !== "string")
+        throw new Error("草稿内容不正确：只支持 Python 3、Java、C、C++ 的字符串代码。");
+      entries.push([Number(id), language, code]);
+    }
   }
   let imported = 0,
     conflicts = 0,
     ignored = 0;
-  for (const [id, code] of Object.entries(drafts)) {
-    if (!problemIds.includes(Number(id))) {
+  for (const [id, language, code] of entries) {
+    if (!problemIds.includes(id)) {
       ignored++;
       continue;
     }
-    if (storage.getItem(draftKey(Number(id))) !== null) {
+    if (Object.prototype.hasOwnProperty.call(overrides, bufferKey(id, language))
+      || (language === "python" && Object.prototype.hasOwnProperty.call(overrides, String(id)))
+      || storage.getItem(draftKey(id, language)) !== null) {
       conflicts++;
       continue;
     }
-    saveCode(Number(id), code as string, storage);
+    saveCode(id, code, storage, language);
     imported++;
   }
   return { imported, conflicts, ignored };
@@ -87,6 +109,7 @@ export function sameSnapshot(
     second !== null &&
     first.workspace_id === second.workspace_id &&
     first.problem_id === second.problem_id &&
+    (first.language ?? "python") === (second.language ?? "python") &&
     first.revision === second.revision &&
     first.code === second.code
   );

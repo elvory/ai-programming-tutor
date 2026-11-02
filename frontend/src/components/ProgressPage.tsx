@@ -7,6 +7,9 @@ import {
   Trophy,
 } from "lucide-react";
 import type { Bootstrap, Problem } from "../types";
+import { useEffect, useRef } from "react";
+import { CapabilityProfile } from "./CapabilityProfile";
+import { ProblemChecklist } from "./ProblemChecklist";
 
 export function ProgressPage({
   data,
@@ -16,6 +19,11 @@ export function ProgressPage({
   onSelect: (problem: Problem) => void;
 }) {
   const { summary, heatmap, route } = data;
+  const heatmapScroll = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    const element = heatmapScroll.current;
+    if (element) element.scrollLeft = element.scrollWidth;
+  }, [heatmap]);
   const padding = heatmap.length
     ? new Date(`${heatmap[0].date}T00:00:00`).getDay()
     : 0;
@@ -65,7 +73,9 @@ export function ProgressPage({
           </small>
         </article>
       </div>
-      <section className="progress-section">
+      <div className="learning-overview">
+      <div className="overview-left">
+      <section className="progress-section activity-section">
         <header>
           <div>
             <h2>学习活动</h2>
@@ -73,7 +83,7 @@ export function ProgressPage({
           </div>
           <span>过去 365 天</span>
         </header>
-        <div className="heatmap-scroll">
+        <div className="heatmap-scroll" ref={heatmapScroll}>
           <div className="heatmap-labels">
             <span>周一</span>
             <span>周三</span>
@@ -94,7 +104,7 @@ export function ProgressPage({
           </div>
         </div>
         <div className="heatmap-footer">
-          <span>仅「记录提交」点亮绿墙，AI 诊断不会计入。</span>
+          <span>仅「记录提交」点亮绿墙。横向滚动可查看全年。</span>
           <div>
             <span>少</span>
             {[0, 1, 2, 3, 4].map((level) => (
@@ -104,7 +114,11 @@ export function ProgressPage({
           </div>
         </div>
       </section>
-      <section className="route-section">
+      <ProblemChecklist data={data} onSelect={onSelect} />
+      </div>
+      <CapabilityProfile data={data.capability} problems={data.problems} onSelect={onSelect} />
+      </div>
+      <section className="route-section" id="full-learning-route">
         <div className="section-heading">
           <h2>推荐刷题路线</h2>
           <span>8 个阶段，从基础走向进阶</span>

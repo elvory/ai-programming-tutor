@@ -16,15 +16,24 @@ vi.mock("./components/CodePanel", () => ({
   CodePanel: ({
     code,
     onCode,
+    language,
+    onLanguage,
   }: {
     code: string;
     onCode: (value: string) => void;
+    language: string;
+    onLanguage: (value: "python" | "java" | "c" | "cpp") => void;
   }) => (
+    <>
+    <select aria-label="编程语言" value={language} onChange={(event) => onLanguage(event.target.value as "python" | "java" | "c" | "cpp")}>
+      <option value="python">Python 3</option><option value="java">Java</option><option value="c">C</option><option value="cpp">C++</option>
+    </select>
     <textarea
       aria-label="test editor"
       value={code}
       onChange={(event) => onCode(event.target.value)}
     />
+    </>
   ),
 }));
 vi.mock("./api", async () => {
@@ -53,6 +62,7 @@ const first: Problem = {
   summary: "摘要",
   difficulty: "Easy",
   python_template: "first template",
+  templates: { python: "first template", java: "first Java template", c: "first C template", cpp: "first CPP template" },
   examples: [{ input: "one", output: "two" }],
   constraints: ["约束"],
   official_url: "https://leetcode.cn/problems/two-sum/",
@@ -64,6 +74,7 @@ const second: Problem = {
   id: 20,
   title_zh: "测试二",
   python_template: "second template",
+  templates: { python: "second template", java: "second Java template", c: "second C template", cpp: "second CPP template" },
 };
 const bootstrap: Bootstrap = {
   problems: [first, second],
@@ -107,6 +118,28 @@ afterEach(() => {
 });
 
 describe("workbench state across real component boundaries", () => {
+  it("preserves four language drafts across switching problem and remounting", async () => {
+    const view = render(<App />);
+    const editor = await screen.findByRole("textbox", { name: "test editor" });
+    const languages = ["python", "java", "c", "cpp"];
+    for (const language of languages) {
+      fireEvent.change(screen.getByLabelText("编程语言"), { target: { value: language } });
+      fireEvent.change(editor, { target: { value: `${language} draft` } });
+    }
+    fireEvent.click(screen.getByRole("button", { name: "下一题" }));
+    expect(editor).toHaveValue("second CPP template");
+    fireEvent.click(screen.getByRole("button", { name: "上一题" }));
+    for (const language of languages) {
+      fireEvent.change(screen.getByLabelText("编程语言"), { target: { value: language } });
+      expect(editor).toHaveValue(`${language} draft`);
+    }
+    view.unmount(); render(<App />);
+    await screen.findByRole("textbox", { name: "test editor" });
+    for (const language of languages) {
+      fireEvent.change(screen.getByLabelText("编程语言"), { target: { value: language } });
+      expect(screen.getByRole("textbox", { name: "test editor" })).toHaveValue(`${language} draft`);
+    }
+  });
   it("restores independent drafts, including an empty draft, across problem changes and refresh", async () => {
     const view = render(<App />);
     const editor = await screen.findByRole("textbox", { name: "test editor" });
@@ -183,7 +216,7 @@ describe("workbench state across real component boundaries", () => {
     fireEvent.change(screen.getByLabelText("导入草稿文件"), {
       target: { files: [file] },
     });
-    await screen.findByText(/已导入 1 道题的草稿/);
+    await screen.findByText(/已导入 1 份草稿/);
     expect(editor).toHaveValue("newer unsaved draft B");
     expect(localStorage.getItem(draftKey(20))).toBe("imported other draft");
     expect(localStorage.getItem(draftKey(1))).toBe("persisted draft A");
@@ -242,5 +275,60 @@ describe("workbench state across real component boundaries", () => {
       expect.any(Number),
       1,
     );
+  });
+  it("sends the selected language for diagnosis, local submission and reported acceptance", async () => {
+    vi.mocked(api.diagnose).mockResolvedValue({ request_id: "java-request", revision: 3 });
+    vi.mocked(api.submission).mockResolvedValue({ ok: true });
+    vi.mocked(api.accepted).mockResolvedValue({ ok: true });
+    vi.spyOn(window, "confirm").mockReturnValue(true);
+    render(<App />);
+    await screen.findByRole("textbox", { name: "test editor" });
+    fireEvent.change(screen.getByLabelText("编程语言"), { target: { value: "java" } });
+    fireEvent.click(screen.getByRole("button", { name: "AI 诊断" }));
+    await screen.findByText("first hint");
+    expect(api.diagnose).toHaveBeenCalledWith(expect.objectContaining({ language: "java", code: "first Java template" }), expect.any(AbortSignal));
+    fireEvent.click(screen.getByRole("button", { name: "记录提交" }));
+    await waitFor(() => expect(api.submission).toHaveBeenCalledWith(expect.objectContaining({ language: "java" })));
+    fireEvent.click(screen.getByRole("button", { name: "标记 LeetCode 已通过" }));
+    await waitFor(() => expect(api.accepted).toHaveBeenCalledWith(1, "java"));
+  });
+  it("discards a slow response after changing language even when the source code is identical", async () => {
+    localStorage.setItem(draftKey(1, "java"), "first template");
+    let resolve!: (value: { request_id: string; revision: number }) => void;
+    vi.mocked(api.diagnose).mockReturnValue(new Promise((done) => { resolve = done; }));
+    render(<App />);
+    await screen.findByRole("textbox", { name: "test editor" });
+    fireEvent.click(screen.getByRole("button", { name: "AI 诊断" }));
+    await waitFor(() => expect(api.diagnose).toHaveBeenCalledOnce());
+    fireEvent.change(screen.getByLabelText("编程语言"), { target: { value: "java" } });
+    await act(async () => resolve({ request_id: "old-python", revision: 2 }));
+    expect(api.accept).not.toHaveBeenCalled();
+    expect(screen.queryByText("first hint")).not.toBeInTheDocument();
+    expect(screen.getByRole("textbox", { name: "test editor" })).toHaveValue("first template");
+  });
+  it("keeps an unsaved Java buffer isolated from Python and a schema2 import", async () => {
+    localStorage.setItem(draftKey(1, "java"), "old Java");
+    render(<App />);
+    const editor = await screen.findByRole("textbox", { name: "test editor" });
+    fireEvent.change(screen.getByLabelText("编程语言"), { target: { value: "java" } });
+    const originalSetItem = Storage.prototype.setItem;
+    vi.spyOn(Storage.prototype, "setItem").mockImplementation(function (this: Storage, key, value) {
+      if (key === draftKey(1, "java")) throw new DOMException("quota", "QuotaExceededError");
+      originalSetItem.call(this, key, value);
+    });
+    fireEvent.change(editor, { target: { value: "unsaved Java" } });
+    fireEvent.change(screen.getByLabelText("编程语言"), { target: { value: "python" } });
+    expect(editor).toHaveValue("first template");
+    fireEvent.change(screen.getByLabelText("编程语言"), { target: { value: "java" } });
+    expect(editor).toHaveValue("unsaved Java");
+    fireEvent.click(screen.getByRole("button", { name: "打开工作台设置" }));
+    const text = JSON.stringify({ schema_version: 2, drafts: { "1": { java: "import Java" }, "20": { c: "import C" } } });
+    const file = new File([text], "drafts.json", { type: "application/json" });
+    Object.defineProperty(file, "text", { value: async () => text });
+    fireEvent.change(screen.getByLabelText("导入草稿文件"), { target: { files: [file] } });
+    await screen.findByText(/已导入 1 份草稿；1 份/);
+    expect(editor).toHaveValue("unsaved Java");
+    expect(localStorage.getItem(draftKey(1, "java"))).toBe("old Java");
+    expect(localStorage.getItem(draftKey(20, "c"))).toBe("import C");
   });
 });

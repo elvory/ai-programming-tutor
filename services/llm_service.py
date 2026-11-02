@@ -14,6 +14,8 @@ from urllib.request import Request, urlopen
 
 from dotenv import load_dotenv
 
+from services.language_service import LANGUAGES, validate_language
+
 
 ROOT = Path(__file__).resolve().parents[1]
 RESPONSES_URL = "https://api.deepseek.com/responses"
@@ -33,6 +35,13 @@ DIAGNOSIS_SCHEMA = {
     },
     "required": ["error_type", "knowledge", "analysis", "hints"],
     "additionalProperties": False,
+}
+
+LANGUAGE_REVIEW = {
+    "python": "检查 Python 3 语法、缩进、列表/字典/集合、类型使用和边界条件。",
+    "java": "检查 Java 的类/方法/访问修饰符、数组、集合、泛型、类型转换和返回值。",
+    "c": "检查 C 的函数参数/返回值、指针、数组、内存分配与释放、越界和悬空指针风险。",
+    "cpp": "检查 C++ 的 STL 容器、引用、指针、迭代器、对象类型、内存管理和算法使用。",
 }
 
 
@@ -132,12 +141,15 @@ def _response_text(body):
     return "".join(parts)
 
 
-def analyze_code_rules(code, problem=None):
+def analyze_code_rules(code, problem=None, language="python"):
     """Statically inspect source with optional catalog context; never execute it.
 
     This keeps the original single-argument API and boundary heuristic. The
     optional problem supplies a title, study summary and tags, not an oracle.
     """
+    language = validate_language(language)
+    if language != "python":
+        raise DiagnosisError("本地规则仅支持 Python 静态检查；其他语言请使用 DeepSeek 诊断。")
     if not isinstance(code, str):
         raise TypeError("代码必须为字符串。")
     if not code.strip():
@@ -190,12 +202,16 @@ def analyze_code_rules(code, problem=None):
     }, problem)
 
 
-def analyze_code(code, problem=None):
+def analyze_code(code, problem=None, language="python"):
     """Diagnose with DeepSeek; retain the optional problem/single-argument API.
 
     No retries or implicit rules fallback: a failed request raises DiagnosisError
     and must not create a successful diagnosis record.
     """
+    try:
+        language = validate_language(language)
+    except ValueError:
+        raise DiagnosisError("不支持的编程语言，请选择 Python 3、Java、C 或 C++。") from None
     if not isinstance(code, str):
         raise TypeError("代码必须为字符串。")
     if not code.strip():
@@ -219,7 +235,9 @@ def analyze_code(code, problem=None):
     payload = {
         "model": model,
         "instructions": prompt,
-        "input": json.dumps({"problem": context, "code": code}, ensure_ascii=False),
+        "input": json.dumps({"problem": context, "language": language,
+                             "language_label": LANGUAGES[language]["label"],
+                             "language_review": LANGUAGE_REVIEW[language], "code": code}, ensure_ascii=False),
         "reasoning": {"effort": "none"},
         "max_output_tokens": 1800,
         "stream": False,

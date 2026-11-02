@@ -1,0 +1,1 @@
+{"checks":["python draft survives actual browser process close/reopen","java draft survives actual browser process close/reopen","c draft survives actual browser process close/reopen","cpp draft survives actual browser process close/reopen"],"check_count":4,"storage":"dedicated persistent browser profile; no user profile access"}

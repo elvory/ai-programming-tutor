@@ -8,6 +8,7 @@ interface Props {
   onImported: () => void;
   onResetLayout: () => void;
   getUnsavedDrafts: () => Record<string, string>;
+  getMemoryDrafts: () => Record<string, string>;
 }
 export function SettingsDialog({
   problemIds,
@@ -15,14 +16,16 @@ export function SettingsDialog({
   onImported,
   onResetLayout,
   getUnsavedDrafts,
+  getMemoryDrafts,
 }: Props) {
   const input = useRef<HTMLInputElement>(null);
   const [message, setMessage] = useState("");
   const [failed, setFailed] = useState(false);
-  function download() {
+  function download(memoryOnly = false) {
     try {
+      const storage = memoryOnly ? { getItem: () => null } as unknown as Storage : localStorage;
       const url = URL.createObjectURL(
-        new Blob([exportDrafts(problemIds, localStorage, getUnsavedDrafts())], {
+        new Blob([exportDrafts(problemIds, storage, memoryOnly ? getMemoryDrafts() : getUnsavedDrafts())], {
           type: "application/json;charset=utf-8",
         }),
       );
@@ -31,13 +34,13 @@ export function SettingsDialog({
       const localDate = new Date().toLocaleDateString("sv-SE", {
         timeZone: "Asia/Shanghai",
       });
-      link.download = `ai-tutor-drafts-${localDate}.json`;
+      link.download = `ai-tutor-${memoryOnly ? "memory-drafts-partial" : "drafts"}-${localDate}.json`;
       link.click();
       URL.revokeObjectURL(url);
-      setMessage("草稿备份已导出。");
+      setMessage(memoryOnly ? "已导出当前页面访问过的草稿。这是部分备份，不包含仅保存在浏览器、当前页面尚未读取的草稿。" : "草稿备份已导出。");
       setFailed(false);
     } catch {
-      setMessage("无法读取浏览器草稿，请检查浏览器存储权限。");
+      setMessage("无法读取全部浏览器草稿。可使用「导出当前会话草稿」备份页面内仍可访问的部分代码，或直接复制当前代码。");
       setFailed(true);
     }
   }
@@ -70,12 +73,16 @@ export function SettingsDialog({
         <div className="settings-body">
           <div className="settings-section-title">草稿备份与迁移</div>
           <p>
-            每道题的草稿保存在当前浏览器，刷新与切页后可以恢复。清除浏览器数据前，请先导出备份。
+            草稿按题目与语言独立保存在当前浏览器，刷新与切页后可以恢复。清除浏览器数据前，请先导出备份。
           </p>
           <div className="settings-actions">
-            <button className="secondary-button" onClick={download}>
+            <button className="secondary-button" onClick={() => download()}>
               <Download size={15} />
               导出全部草稿
+            </button>
+            <button className="secondary-button" onClick={() => download(true)}>
+              <Download size={15} />
+              导出当前会话草稿（部分备份）
             </button>
             <button
               className="secondary-button"
@@ -99,9 +106,10 @@ export function SettingsDialog({
                   await file.text(),
                   problemIds,
                   localStorage,
+                  getUnsavedDrafts(),
                 );
                 setMessage(
-                  `已导入 ${result.imported} 道题的草稿；${result.conflicts} 份同题已有草稿保留不变${result.ignored ? `，${result.ignored} 份不在当前题库中已忽略` : ""}。`,
+                  `已导入 ${result.imported} 份草稿；${result.conflicts} 份同题同语言已有草稿保留不变${result.ignored ? `，${result.ignored} 份不在当前题库中已忽略` : ""}。`,
                 );
                 setFailed(false);
                 onImported();
@@ -118,7 +126,7 @@ export function SettingsDialog({
             <ShieldCheck size={18} />
             <p>
               从旧版 Streamlit
-              迁移：先在旧练习页展开「导出当前会话草稿到新版工作台」并导出，再在此导入。同题已有草稿不会被覆盖。
+              迁移：先在旧练习页展开「导出当前会话草稿到新版工作台」并导出，再在此导入。旧格式归入 Python 3，同题同语言已有草稿不会被覆盖。
             </p>
           </div>
           {message && (

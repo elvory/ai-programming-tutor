@@ -1,3 +1,4 @@
+export type Language = "python" | "java" | "c" | "cpp";
 export interface Problem {
   id: number;
   title_zh: string;
@@ -10,6 +11,7 @@ export interface Problem {
   examples: { input: string; output: string; explanation?: string }[];
   constraints: string[];
   python_template: string;
+  templates?: Partial<Record<Language, string>>;
   official_url: string;
   source_note: string;
 }
@@ -28,8 +30,34 @@ export interface Bootstrap {
     recommended_stage: number;
     completed_ids: number[];
     counts_by_day: Record<string, number>;
+    completed_by_language?: Record<Language, number[]>;
   };
   heatmap: { date: string; count: number; level: number }[];
+  capability?: CapabilityProfileData;
+}
+export type SampleStatus = "empty" | "insufficient" | "available";
+export interface CapabilityDimension {
+  id: string;
+  label: string;
+  stages: number[];
+  problem_ids: number[];
+  total: number;
+  completed_ids: number[];
+  completed: number;
+  percentage: number;
+  sample_status: SampleStatus;
+  recommended_problem_id: number | null;
+}
+export interface CapabilityProfileData {
+  dimensions: CapabilityDimension[];
+  completed_unique: number;
+  total: number;
+  sample_status: SampleStatus;
+  strongest: string[];
+  needs_attention: string[];
+  recommendation: string;
+  recommended_problem_id: number | null;
+  unclassified_problem_ids: number[];
 }
 export type DisplayRow = Record<string, string>;
 export interface History {
@@ -41,6 +69,7 @@ export interface Snapshot {
   problem_id: number;
   code: string;
   revision: number;
+  language?: Language;
 }
 export interface Diagnosis {
   error_type: string;
@@ -58,6 +87,7 @@ export interface DiagnosisResult {
   hint_level: number;
   hint_count: number;
   warning: string | null;
+  language?: Language;
 }
 
 export type Page = "workbench" | "route" | "history";

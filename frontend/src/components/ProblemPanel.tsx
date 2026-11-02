@@ -8,11 +8,14 @@ import {
   PanelLeftClose,
 } from "lucide-react";
 import { api } from "../api";
-import type { DisplayRow, Problem } from "../types";
+import type { DisplayRow, Language, Problem } from "../types";
+import { LANGUAGES } from "../languages";
 
 interface Props {
   problem: Problem;
   accepted: boolean;
+  overallAccepted?: boolean;
+  language?: Language;
   refreshKey: number;
   onCollapse: () => void;
   onAccept: () => void;
@@ -20,6 +23,8 @@ interface Props {
 export function ProblemPanel({
   problem,
   accepted,
+  overallAccepted = accepted,
+  language = "python",
   refreshKey,
   onCollapse,
   onAccept,
@@ -98,10 +103,10 @@ export function ProblemPanel({
               {accepted ? (
                 <span className="accepted-label">
                   <Check size={12} />
-                  已通过 · 用户自报
+                  {LANGUAGES[language].label} 已通过 · 用户自报
                 </span>
               ) : (
-                <span className="muted">未完成</span>
+                <span className="muted">{overallAccepted ? "本题已完成 · 当前语言未确认" : "未完成"}</span>
               )}
               <a
                 className="icon-link push-right"
@@ -206,7 +211,7 @@ export function ProblemPanel({
                 </div>
                 <p>{item["提交日期"]}</p>
                 <small>
-                  {item["错误类型"]} · {item["Hint 使用情况"]}
+                  {item["语言"] || "语言未记录"} · {item["错误类型"]} · {item["Hint 使用情况"]}
                 </small>
               </article>
             ))}

@@ -32,6 +32,7 @@ export function HistoryPage({ refreshKey }: { refreshKey: number }) {
       ? [
           "题目名称",
           "LeetCode 题号",
+          "语言",
           "错误类型",
           "知识点",
           "Hint 使用情况",
@@ -42,6 +43,7 @@ export function HistoryPage({ refreshKey }: { refreshKey: number }) {
       : [
           "题目名称",
           "活动类型",
+          "语言",
           "Hint 使用情况",
           "诊断来源",
           "提交日期",
@@ -119,7 +121,7 @@ export function HistoryPage({ refreshKey }: { refreshKey: number }) {
                         column === "状态" ? row["异常说明"] : value(row, column)
                       }
                     >
-                      {value(row, column)}
+                      {column === "语言" ? <span className="language-badge">{value(row, column)}</span> : value(row, column)}
                     </td>
                   ))}
                 </tr>

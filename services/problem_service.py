@@ -15,6 +15,7 @@ from threading import Lock
 
 
 CATALOG_PATH = Path(__file__).resolve().parents[1] / "data" / "problem_catalog.json"
+TEMPLATES_PATH = Path(__file__).resolve().parents[1] / "data" / "problem_templates.json"
 STAGE_TITLES = (
     "数组与哈希表", "双指针与滑动窗口", "栈、队列与二分查找", "链表",
     "二叉树与递归", "DFS、BFS 与回溯", "贪心算法", "动态规划",
@@ -31,6 +32,8 @@ TEXT_FIELDS = (
 )
 _CACHE = {"key": None, "problems": None}
 _CACHE_LOCK = Lock()
+_TEMPLATE_CACHE = {"key": None, "templates": None}
+_TEMPLATE_CACHE_LOCK = Lock()
 
 
 class CatalogError(ValueError):
@@ -143,7 +146,48 @@ def _catalog():
 
 def load_problems():
     """Return a fresh, validated catalog so callers cannot alter later searches."""
-    return copy.deepcopy(_catalog())
+    problems = _catalog()
+    extensions = _template_extensions()
+    return [_with_templates(problem, extensions) for problem in problems]
+
+
+def _template_extensions():
+    """Cache the separate template overlay without altering the original catalog."""
+    path = Path(os.environ.get("AI_TUTOR_TEMPLATES_PATH") or TEMPLATES_PATH).expanduser()
+    try:
+        stat = path.stat()
+        key = (str(path), stat.st_mtime_ns, stat.st_size)
+        with _TEMPLATE_CACHE_LOCK:
+            if _TEMPLATE_CACHE["key"] == key:
+                return _TEMPLATE_CACHE["templates"]
+        extensions = json.loads(path.read_text(encoding="utf-8"))
+    except (OSError, UnicodeError, ValueError):
+        raise CatalogError("多语言模板无法读取，请检查 data/problem_templates.json 的格式与权限。") from None
+    if not isinstance(extensions, dict):
+        raise CatalogError("多语言模板的 JSON 根节点必须是对象。")
+    for identity, extension in extensions.items():
+        if not identity.isdecimal() or int(identity) <= 0 or identity != str(int(identity)):
+            raise CatalogError("多语言模板的题号必须是正整数的字符串。")
+        if (not isinstance(extension, dict) or not _text(extension.get("slug"))
+                or any(not _text(extension.get(language)) for language in ("java", "c", "cpp"))):
+            raise CatalogError(f"题目 #{identity} 的多语言模板不完整。")
+    with _TEMPLATE_CACHE_LOCK:
+        _TEMPLATE_CACHE["key"] = key
+        _TEMPLATE_CACHE["templates"] = extensions
+    return extensions
+
+
+def _with_templates(problem, extensions=None):
+    result = copy.deepcopy(problem)
+    result["templates"] = {"python": result["python_template"]}
+    if extensions is None:
+        extensions = _template_extensions()
+    extension = extensions.get(str(result["id"]))
+    # An external catalog may reuse an ID for a different exercise. Never attach
+    # an unrelated signature: unknown exercises retain their original Python.
+    if isinstance(extension, dict) and extension.get("slug") == result["slug"]:
+        result["templates"].update({language: extension[language] for language in ("java", "c", "cpp")})
+    return result
 
 
 def get_problem(problem_id):
@@ -153,15 +197,17 @@ def get_problem(problem_id):
         return None
     for problem in _catalog():
         if problem["id"] == number:
-            return copy.deepcopy(problem)
+            return _with_templates(problem)
     return None
 
 
 def search_problems(query="", difficulty=None, tags=None):
     query = str(query or "").strip().casefold()
     requested_tags = {tags} if isinstance(tags, str) else set(tags or [])
+    problems = _catalog()
+    extensions = _template_extensions()
     return [
-        copy.deepcopy(problem) for problem in _catalog()
+        _with_templates(problem, extensions) for problem in problems
         if (not query or (
             str(problem["id"]) == query if query.isdigit() else
             query in problem["title_zh"].casefold() or query in problem["title_en"].casefold()

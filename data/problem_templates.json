@@ -1,0 +1,194 @@
+{
+  "1": {
+    "slug": "two-sum",
+    "java": "import java.util.*;\n\nclass Solution {\n    public int[] twoSum(int[] nums, int target) {\n        // TODO: implement the algorithm.\n        throw new UnsupportedOperationException(\"TODO\");\n    }\n}\n",
+    "c": "#include <stdbool.h>\n#include <stddef.h>\n#include <stdlib.h>\n\nint* twoSum(int* nums, int numsSize, int target, int* returnSize) {\n    // TODO: implement the algorithm; this placeholder is not a solution.\n    *returnSize = 0;\n    // Allocate output rows/arrays as needed; the caller frees the result.\n    return NULL;\n}\n",
+    "cpp": "#include <vector>\n#include <string>\n#include <stdexcept>\nusing namespace std;\n\nclass Solution {\npublic:\n    vector<int> twoSum(vector<int>& nums, int target) {\n        // TODO: implement the algorithm.\n        throw logic_error(\"TODO\");\n    }\n};\n"
+  },
+  "3": {
+    "slug": "longest-substring-without-repeating-characters",
+    "java": "import java.util.*;\n\nclass Solution {\n    public int lengthOfLongestSubstring(String s) {\n        // TODO: implement the algorithm.\n        throw new UnsupportedOperationException(\"TODO\");\n    }\n}\n",
+    "c": "#include <stdbool.h>\n#include <stddef.h>\n#include <stdlib.h>\n\nint lengthOfLongestSubstring(char* s) {\n    // TODO: implement the algorithm; this placeholder is not a solution.\n    return 0;\n}\n",
+    "cpp": "#include <vector>\n#include <string>\n#include <stdexcept>\nusing namespace std;\n\nclass Solution {\npublic:\n    int lengthOfLongestSubstring(string s) {\n        // TODO: implement the algorithm.\n        throw logic_error(\"TODO\");\n    }\n};\n"
+  },
+  "11": {
+    "slug": "container-with-most-water",
+    "java": "import java.util.*;\n\nclass Solution {\n    public int maxArea(int[] height) {\n        // TODO: implement the algorithm.\n        throw new UnsupportedOperationException(\"TODO\");\n    }\n}\n",
+    "c": "#include <stdbool.h>\n#include <stddef.h>\n#include <stdlib.h>\n\nint maxArea(int* height, int heightSize) {\n    // TODO: implement the algorithm; this placeholder is not a solution.\n    return 0;\n}\n",
+    "cpp": "#include <vector>\n#include <string>\n#include <stdexcept>\nusing namespace std;\n\nclass Solution {\npublic:\n    int maxArea(vector<int>& height) {\n        // TODO: implement the algorithm.\n        throw logic_error(\"TODO\");\n    }\n};\n"
+  },
+  "19": {
+    "slug": "remove-nth-node-from-end-of-list",
+    "java": "import java.util.*;\n\n/* LeetCode supplies this type; do not redeclare it when submitting.\nclass ListNode {\n    int val;\n    ListNode next;\n    ListNode() {}\n    ListNode(int val) { this.val = val; }\n    ListNode(int val, ListNode next) { this.val = val; this.next = next; }\n}\n*/\n\nclass Solution {\n    public ListNode removeNthFromEnd(ListNode head, int n) {\n        // TODO: implement the algorithm.\n        throw new UnsupportedOperationException(\"TODO\");\n    }\n}\n",
+    "c": "#include <stdbool.h>\n#include <stddef.h>\n#include <stdlib.h>\n\n/* LeetCode supplies this type; do not redeclare it when submitting.\nstruct ListNode {\n    int val;\n    struct ListNode* next;\n};\n*/\n\nstruct ListNode* removeNthFromEnd(struct ListNode* head, int n) {\n    // TODO: implement the algorithm; this placeholder is not a solution.\n    return NULL;\n}\n",
+    "cpp": "#include <vector>\n#include <string>\n#include <stdexcept>\nusing namespace std;\n\n/* LeetCode supplies this type; do not redeclare it when submitting.\nstruct ListNode {\n    int val;\n    ListNode* next;\n    ListNode() : val(0), next(nullptr) {}\n    ListNode(int x) : val(x), next(nullptr) {}\n    ListNode(int x, ListNode* next) : val(x), next(next) {}\n};\n*/\n\nclass Solution {\npublic:\n    ListNode* removeNthFromEnd(ListNode* head, int n) {\n        // TODO: implement the algorithm.\n        throw logic_error(\"TODO\");\n    }\n};\n"
+  },
+  "20": {
+    "slug": "valid-parentheses",
+    "java": "import java.util.*;\n\nclass Solution {\n    public boolean isValid(String s) {\n        // TODO: implement the algorithm.\n        throw new UnsupportedOperationException(\"TODO\");\n    }\n}\n",
+    "c": "#include <stdbool.h>\n#include <stddef.h>\n#include <stdlib.h>\n\nbool isValid(char* s) {\n    // TODO: implement the algorithm; this placeholder is not a solution.\n    return false;\n}\n",
+    "cpp": "#include <vector>\n#include <string>\n#include <stdexcept>\nusing namespace std;\n\nclass Solution {\npublic:\n    bool isValid(string s) {\n        // TODO: implement the algorithm.\n        throw logic_error(\"TODO\");\n    }\n};\n"
+  },
+  "21": {
+    "slug": "merge-two-sorted-lists",
+    "java": "import java.util.*;\n\n/* LeetCode supplies this type; do not redeclare it when submitting.\nclass ListNode {\n    int val;\n    ListNode next;\n    ListNode() {}\n    ListNode(int val) { this.val = val; }\n    ListNode(int val, ListNode next) { this.val = val; this.next = next; }\n}\n*/\n\nclass Solution {\n    public ListNode mergeTwoLists(ListNode list1, ListNode list2) {\n        // TODO: implement the algorithm.\n        throw new UnsupportedOperationException(\"TODO\");\n    }\n}\n",
+    "c": "#include <stdbool.h>\n#include <stddef.h>\n#include <stdlib.h>\n\n/* LeetCode supplies this type; do not redeclare it when submitting.\nstruct ListNode {\n    int val;\n    struct ListNode* next;\n};\n*/\n\nstruct ListNode* mergeTwoLists(struct ListNode* list1, struct ListNode* list2) {\n    // TODO: implement the algorithm; this placeholder is not a solution.\n    return NULL;\n}\n",
+    "cpp": "#include <vector>\n#include <string>\n#include <stdexcept>\nusing namespace std;\n\n/* LeetCode supplies this type; do not redeclare it when submitting.\nstruct ListNode {\n    int val;\n    ListNode* next;\n    ListNode() : val(0), next(nullptr) {}\n    ListNode(int x) : val(x), next(nullptr) {}\n    ListNode(int x, ListNode* next) : val(x), next(next) {}\n};\n*/\n\nclass Solution {\npublic:\n    ListNode* mergeTwoLists(ListNode* list1, ListNode* list2) {\n        // TODO: implement the algorithm.\n        throw logic_error(\"TODO\");\n    }\n};\n"
+  },
+  "42": {
+    "slug": "trapping-rain-water",
+    "java": "import java.util.*;\n\nclass Solution {\n    public int trap(int[] height) {\n        // TODO: implement the algorithm.\n        throw new UnsupportedOperationException(\"TODO\");\n    }\n}\n",
+    "c": "#include <stdbool.h>\n#include <stddef.h>\n#include <stdlib.h>\n\nint trap(int* height, int heightSize) {\n    // TODO: implement the algorithm; this placeholder is not a solution.\n    return 0;\n}\n",
+    "cpp": "#include <vector>\n#include <string>\n#include <stdexcept>\nusing namespace std;\n\nclass Solution {\npublic:\n    int trap(vector<int>& height) {\n        // TODO: implement the algorithm.\n        throw logic_error(\"TODO\");\n    }\n};\n"
+  },
+  "45": {
+    "slug": "jump-game-ii",
+    "java": "import java.util.*;\n\nclass Solution {\n    public int jump(int[] nums) {\n        // TODO: implement the algorithm.\n        throw new UnsupportedOperationException(\"TODO\");\n    }\n}\n",
+    "c": "#include <stdbool.h>\n#include <stddef.h>\n#include <stdlib.h>\n\nint jump(int* nums, int numsSize) {\n    // TODO: implement the algorithm; this placeholder is not a solution.\n    return 0;\n}\n",
+    "cpp": "#include <vector>\n#include <string>\n#include <stdexcept>\nusing namespace std;\n\nclass Solution {\npublic:\n    int jump(vector<int>& nums) {\n        // TODO: implement the algorithm.\n        throw logic_error(\"TODO\");\n    }\n};\n"
+  },
+  "46": {
+    "slug": "permutations",
+    "java": "import java.util.*;\n\nclass Solution {\n    public List<List<Integer>> permute(int[] nums) {\n        // TODO: implement the algorithm.\n        throw new UnsupportedOperationException(\"TODO\");\n    }\n}\n",
+    "c": "#include <stdbool.h>\n#include <stddef.h>\n#include <stdlib.h>\n\nint** permute(int* nums, int numsSize, int* returnSize, int** returnColumnSizes) {\n    // TODO: implement the algorithm; this placeholder is not a solution.\n    *returnSize = 0;\n    *returnColumnSizes = NULL;\n    // Allocate output rows/arrays as needed; the caller frees the result.\n    return NULL;\n}\n",
+    "cpp": "#include <vector>\n#include <string>\n#include <stdexcept>\nusing namespace std;\n\nclass Solution {\npublic:\n    vector<vector<int>> permute(vector<int>& nums) {\n        // TODO: implement the algorithm.\n        throw logic_error(\"TODO\");\n    }\n};\n"
+  },
+  "49": {
+    "slug": "group-anagrams",
+    "java": "import java.util.*;\n\nclass Solution {\n    public List<List<String>> groupAnagrams(String[] strs) {\n        // TODO: implement the algorithm.\n        throw new UnsupportedOperationException(\"TODO\");\n    }\n}\n",
+    "c": "#include <stdbool.h>\n#include <stddef.h>\n#include <stdlib.h>\n\nchar*** groupAnagrams(char** strs, int strsSize, int* returnSize, int** returnColumnSizes) {\n    // TODO: implement the algorithm; this placeholder is not a solution.\n    *returnSize = 0;\n    *returnColumnSizes = NULL;\n    // Allocate output rows/arrays as needed; the caller frees the result.\n    return NULL;\n}\n",
+    "cpp": "#include <vector>\n#include <string>\n#include <stdexcept>\nusing namespace std;\n\nclass Solution {\npublic:\n    vector<vector<string>> groupAnagrams(vector<string>& strs) {\n        // TODO: implement the algorithm.\n        throw logic_error(\"TODO\");\n    }\n};\n"
+  },
+  "53": {
+    "slug": "maximum-subarray",
+    "java": "import java.util.*;\n\nclass Solution {\n    public int maxSubArray(int[] nums) {\n        // TODO: implement the algorithm.\n        throw new UnsupportedOperationException(\"TODO\");\n    }\n}\n",
+    "c": "#include <stdbool.h>\n#include <stddef.h>\n#include <stdlib.h>\n\nint maxSubArray(int* nums, int numsSize) {\n    // TODO: implement the algorithm; this placeholder is not a solution.\n    return 0;\n}\n",
+    "cpp": "#include <vector>\n#include <string>\n#include <stdexcept>\nusing namespace std;\n\nclass Solution {\npublic:\n    int maxSubArray(vector<int>& nums) {\n        // TODO: implement the algorithm.\n        throw logic_error(\"TODO\");\n    }\n};\n"
+  },
+  "55": {
+    "slug": "jump-game",
+    "java": "import java.util.*;\n\nclass Solution {\n    public boolean canJump(int[] nums) {\n        // TODO: implement the algorithm.\n        throw new UnsupportedOperationException(\"TODO\");\n    }\n}\n",
+    "c": "#include <stdbool.h>\n#include <stddef.h>\n#include <stdlib.h>\n\nbool canJump(int* nums, int numsSize) {\n    // TODO: implement the algorithm; this placeholder is not a solution.\n    return false;\n}\n",
+    "cpp": "#include <vector>\n#include <string>\n#include <stdexcept>\nusing namespace std;\n\nclass Solution {\npublic:\n    bool canJump(vector<int>& nums) {\n        // TODO: implement the algorithm.\n        throw logic_error(\"TODO\");\n    }\n};\n"
+  },
+  "56": {
+    "slug": "merge-intervals",
+    "java": "import java.util.*;\n\nclass Solution {\n    public int[][] merge(int[][] intervals) {\n        // TODO: implement the algorithm.\n        throw new UnsupportedOperationException(\"TODO\");\n    }\n}\n",
+    "c": "#include <stdbool.h>\n#include <stddef.h>\n#include <stdlib.h>\n\nint** merge(int** intervals, int intervalsSize, int* intervalsColSize, int* returnSize, int** returnColumnSizes) {\n    // TODO: implement the algorithm; this placeholder is not a solution.\n    *returnSize = 0;\n    *returnColumnSizes = NULL;\n    // Allocate output rows/arrays as needed; the caller frees the result.\n    return NULL;\n}\n",
+    "cpp": "#include <vector>\n#include <string>\n#include <stdexcept>\nusing namespace std;\n\nclass Solution {\npublic:\n    vector<vector<int>> merge(vector<vector<int>>& intervals) {\n        // TODO: implement the algorithm.\n        throw logic_error(\"TODO\");\n    }\n};\n"
+  },
+  "70": {
+    "slug": "climbing-stairs",
+    "java": "import java.util.*;\n\nclass Solution {\n    public int climbStairs(int n) {\n        // TODO: implement the algorithm.\n        throw new UnsupportedOperationException(\"TODO\");\n    }\n}\n",
+    "c": "#include <stdbool.h>\n#include <stddef.h>\n#include <stdlib.h>\n\nint climbStairs(int n) {\n    // TODO: implement the algorithm; this placeholder is not a solution.\n    return 0;\n}\n",
+    "cpp": "#include <vector>\n#include <string>\n#include <stdexcept>\nusing namespace std;\n\nclass Solution {\npublic:\n    int climbStairs(int n) {\n        // TODO: implement the algorithm.\n        throw logic_error(\"TODO\");\n    }\n};\n"
+  },
+  "78": {
+    "slug": "subsets",
+    "java": "import java.util.*;\n\nclass Solution {\n    public List<List<Integer>> subsets(int[] nums) {\n        // TODO: implement the algorithm.\n        throw new UnsupportedOperationException(\"TODO\");\n    }\n}\n",
+    "c": "#include <stdbool.h>\n#include <stddef.h>\n#include <stdlib.h>\n\nint** subsets(int* nums, int numsSize, int* returnSize, int** returnColumnSizes) {\n    // TODO: implement the algorithm; this placeholder is not a solution.\n    *returnSize = 0;\n    *returnColumnSizes = NULL;\n    // Allocate output rows/arrays as needed; the caller frees the result.\n    return NULL;\n}\n",
+    "cpp": "#include <vector>\n#include <string>\n#include <stdexcept>\nusing namespace std;\n\nclass Solution {\npublic:\n    vector<vector<int>> subsets(vector<int>& nums) {\n        // TODO: implement the algorithm.\n        throw logic_error(\"TODO\");\n    }\n};\n"
+  },
+  "98": {
+    "slug": "validate-binary-search-tree",
+    "java": "import java.util.*;\n\n/* LeetCode supplies this type; do not redeclare it when submitting.\nclass TreeNode {\n    int val;\n    TreeNode left;\n    TreeNode right;\n    TreeNode() {}\n    TreeNode(int val) { this.val = val; }\n    TreeNode(int val, TreeNode left, TreeNode right) {\n        this.val = val; this.left = left; this.right = right;\n    }\n}\n*/\n\nclass Solution {\n    public boolean isValidBST(TreeNode root) {\n        // TODO: implement the algorithm.\n        throw new UnsupportedOperationException(\"TODO\");\n    }\n}\n",
+    "c": "#include <stdbool.h>\n#include <stddef.h>\n#include <stdlib.h>\n\n/* LeetCode supplies this type; do not redeclare it when submitting.\nstruct TreeNode {\n    int val;\n    struct TreeNode* left;\n    struct TreeNode* right;\n};\n*/\n\nbool isValidBST(struct TreeNode* root) {\n    // TODO: implement the algorithm; this placeholder is not a solution.\n    return false;\n}\n",
+    "cpp": "#include <vector>\n#include <string>\n#include <stdexcept>\nusing namespace std;\n\n/* LeetCode supplies this type; do not redeclare it when submitting.\nstruct TreeNode {\n    int val;\n    TreeNode* left;\n    TreeNode* right;\n    TreeNode() : val(0), left(nullptr), right(nullptr) {}\n    TreeNode(int x) : val(x), left(nullptr), right(nullptr) {}\n    TreeNode(int x, TreeNode* left, TreeNode* right) : val(x), left(left), right(right) {}\n};\n*/\n\nclass Solution {\npublic:\n    bool isValidBST(TreeNode* root) {\n        // TODO: implement the algorithm.\n        throw logic_error(\"TODO\");\n    }\n};\n"
+  },
+  "102": {
+    "slug": "binary-tree-level-order-traversal",
+    "java": "import java.util.*;\n\n/* LeetCode supplies this type; do not redeclare it when submitting.\nclass TreeNode {\n    int val;\n    TreeNode left;\n    TreeNode right;\n    TreeNode() {}\n    TreeNode(int val) { this.val = val; }\n    TreeNode(int val, TreeNode left, TreeNode right) {\n        this.val = val; this.left = left; this.right = right;\n    }\n}\n*/\n\nclass Solution {\n    public List<List<Integer>> levelOrder(TreeNode root) {\n        // TODO: implement the algorithm.\n        throw new UnsupportedOperationException(\"TODO\");\n    }\n}\n",
+    "c": "#include <stdbool.h>\n#include <stddef.h>\n#include <stdlib.h>\n\n/* LeetCode supplies this type; do not redeclare it when submitting.\nstruct TreeNode {\n    int val;\n    struct TreeNode* left;\n    struct TreeNode* right;\n};\n*/\n\nint** levelOrder(struct TreeNode* root, int* returnSize, int** returnColumnSizes) {\n    // TODO: implement the algorithm; this placeholder is not a solution.\n    *returnSize = 0;\n    *returnColumnSizes = NULL;\n    // Allocate output rows/arrays as needed; the caller frees the result.\n    return NULL;\n}\n",
+    "cpp": "#include <vector>\n#include <string>\n#include <stdexcept>\nusing namespace std;\n\n/* LeetCode supplies this type; do not redeclare it when submitting.\nstruct TreeNode {\n    int val;\n    TreeNode* left;\n    TreeNode* right;\n    TreeNode() : val(0), left(nullptr), right(nullptr) {}\n    TreeNode(int x) : val(x), left(nullptr), right(nullptr) {}\n    TreeNode(int x, TreeNode* left, TreeNode* right) : val(x), left(left), right(right) {}\n};\n*/\n\nclass Solution {\npublic:\n    vector<vector<int>> levelOrder(TreeNode* root) {\n        // TODO: implement the algorithm.\n        throw logic_error(\"TODO\");\n    }\n};\n"
+  },
+  "104": {
+    "slug": "maximum-depth-of-binary-tree",
+    "java": "import java.util.*;\n\n/* LeetCode supplies this type; do not redeclare it when submitting.\nclass TreeNode {\n    int val;\n    TreeNode left;\n    TreeNode right;\n    TreeNode() {}\n    TreeNode(int val) { this.val = val; }\n    TreeNode(int val, TreeNode left, TreeNode right) {\n        this.val = val; this.left = left; this.right = right;\n    }\n}\n*/\n\nclass Solution {\n    public int maxDepth(TreeNode root) {\n        // TODO: implement the algorithm.\n        throw new UnsupportedOperationException(\"TODO\");\n    }\n}\n",
+    "c": "#include <stdbool.h>\n#include <stddef.h>\n#include <stdlib.h>\n\n/* LeetCode supplies this type; do not redeclare it when submitting.\nstruct TreeNode {\n    int val;\n    struct TreeNode* left;\n    struct TreeNode* right;\n};\n*/\n\nint maxDepth(struct TreeNode* root) {\n    // TODO: implement the algorithm; this placeholder is not a solution.\n    return 0;\n}\n",
+    "cpp": "#include <vector>\n#include <string>\n#include <stdexcept>\nusing namespace std;\n\n/* LeetCode supplies this type; do not redeclare it when submitting.\nstruct TreeNode {\n    int val;\n    TreeNode* left;\n    TreeNode* right;\n    TreeNode() : val(0), left(nullptr), right(nullptr) {}\n    TreeNode(int x) : val(x), left(nullptr), right(nullptr) {}\n    TreeNode(int x, TreeNode* left, TreeNode* right) : val(x), left(left), right(right) {}\n};\n*/\n\nclass Solution {\npublic:\n    int maxDepth(TreeNode* root) {\n        // TODO: implement the algorithm.\n        throw logic_error(\"TODO\");\n    }\n};\n"
+  },
+  "125": {
+    "slug": "valid-palindrome",
+    "java": "import java.util.*;\n\nclass Solution {\n    public boolean isPalindrome(String s) {\n        // TODO: implement the algorithm.\n        throw new UnsupportedOperationException(\"TODO\");\n    }\n}\n",
+    "c": "#include <stdbool.h>\n#include <stddef.h>\n#include <stdlib.h>\n\nbool isPalindrome(char* s) {\n    // TODO: implement the algorithm; this placeholder is not a solution.\n    return false;\n}\n",
+    "cpp": "#include <vector>\n#include <string>\n#include <stdexcept>\nusing namespace std;\n\nclass Solution {\npublic:\n    bool isPalindrome(string s) {\n        // TODO: implement the algorithm.\n        throw logic_error(\"TODO\");\n    }\n};\n"
+  },
+  "141": {
+    "slug": "linked-list-cycle",
+    "java": "import java.util.*;\n\n/* LeetCode supplies this type; do not redeclare it when submitting.\nclass ListNode {\n    int val;\n    ListNode next;\n    ListNode() {}\n    ListNode(int val) { this.val = val; }\n    ListNode(int val, ListNode next) { this.val = val; this.next = next; }\n}\n*/\n\nclass Solution {\n    public boolean hasCycle(ListNode head) {\n        // TODO: implement the algorithm.\n        throw new UnsupportedOperationException(\"TODO\");\n    }\n}\n",
+    "c": "#include <stdbool.h>\n#include <stddef.h>\n#include <stdlib.h>\n\n/* LeetCode supplies this type; do not redeclare it when submitting.\nstruct ListNode {\n    int val;\n    struct ListNode* next;\n};\n*/\n\nbool hasCycle(struct ListNode* head) {\n    // TODO: implement the algorithm; this placeholder is not a solution.\n    return false;\n}\n",
+    "cpp": "#include <vector>\n#include <string>\n#include <stdexcept>\nusing namespace std;\n\n/* LeetCode supplies this type; do not redeclare it when submitting.\nstruct ListNode {\n    int val;\n    ListNode* next;\n    ListNode() : val(0), next(nullptr) {}\n    ListNode(int x) : val(x), next(nullptr) {}\n    ListNode(int x, ListNode* next) : val(x), next(next) {}\n};\n*/\n\nclass Solution {\npublic:\n    bool hasCycle(ListNode* head) {\n        // TODO: implement the algorithm.\n        throw logic_error(\"TODO\");\n    }\n};\n"
+  },
+  "150": {
+    "slug": "evaluate-reverse-polish-notation",
+    "java": "import java.util.*;\n\nclass Solution {\n    public int evalRPN(String[] tokens) {\n        // TODO: implement the algorithm.\n        throw new UnsupportedOperationException(\"TODO\");\n    }\n}\n",
+    "c": "#include <stdbool.h>\n#include <stddef.h>\n#include <stdlib.h>\n\nint evalRPN(char** tokens, int tokensSize) {\n    // TODO: implement the algorithm; this placeholder is not a solution.\n    return 0;\n}\n",
+    "cpp": "#include <vector>\n#include <string>\n#include <stdexcept>\nusing namespace std;\n\nclass Solution {\npublic:\n    int evalRPN(vector<string>& tokens) {\n        // TODO: implement the algorithm.\n        throw logic_error(\"TODO\");\n    }\n};\n"
+  },
+  "198": {
+    "slug": "house-robber",
+    "java": "import java.util.*;\n\nclass Solution {\n    public int rob(int[] nums) {\n        // TODO: implement the algorithm.\n        throw new UnsupportedOperationException(\"TODO\");\n    }\n}\n",
+    "c": "#include <stdbool.h>\n#include <stddef.h>\n#include <stdlib.h>\n\nint rob(int* nums, int numsSize) {\n    // TODO: implement the algorithm; this placeholder is not a solution.\n    return 0;\n}\n",
+    "cpp": "#include <vector>\n#include <string>\n#include <stdexcept>\nusing namespace std;\n\nclass Solution {\npublic:\n    int rob(vector<int>& nums) {\n        // TODO: implement the algorithm.\n        throw logic_error(\"TODO\");\n    }\n};\n"
+  },
+  "200": {
+    "slug": "number-of-islands",
+    "java": "import java.util.*;\n\nclass Solution {\n    public int numIslands(char[][] grid) {\n        // TODO: implement the algorithm.\n        throw new UnsupportedOperationException(\"TODO\");\n    }\n}\n",
+    "c": "#include <stdbool.h>\n#include <stddef.h>\n#include <stdlib.h>\n\nint numIslands(char** grid, int gridSize, int* gridColSize) {\n    // TODO: implement the algorithm; this placeholder is not a solution.\n    return 0;\n}\n",
+    "cpp": "#include <vector>\n#include <string>\n#include <stdexcept>\nusing namespace std;\n\nclass Solution {\npublic:\n    int numIslands(vector<vector<char>>& grid) {\n        // TODO: implement the algorithm.\n        throw logic_error(\"TODO\");\n    }\n};\n"
+  },
+  "206": {
+    "slug": "reverse-linked-list",
+    "java": "import java.util.*;\n\n/* LeetCode supplies this type; do not redeclare it when submitting.\nclass ListNode {\n    int val;\n    ListNode next;\n    ListNode() {}\n    ListNode(int val) { this.val = val; }\n    ListNode(int val, ListNode next) { this.val = val; this.next = next; }\n}\n*/\n\nclass Solution {\n    public ListNode reverseList(ListNode head) {\n        // TODO: implement the algorithm.\n        throw new UnsupportedOperationException(\"TODO\");\n    }\n}\n",
+    "c": "#include <stdbool.h>\n#include <stddef.h>\n#include <stdlib.h>\n\n/* LeetCode supplies this type; do not redeclare it when submitting.\nstruct ListNode {\n    int val;\n    struct ListNode* next;\n};\n*/\n\nstruct ListNode* reverseList(struct ListNode* head) {\n    // TODO: implement the algorithm; this placeholder is not a solution.\n    return NULL;\n}\n",
+    "cpp": "#include <vector>\n#include <string>\n#include <stdexcept>\nusing namespace std;\n\n/* LeetCode supplies this type; do not redeclare it when submitting.\nstruct ListNode {\n    int val;\n    ListNode* next;\n    ListNode() : val(0), next(nullptr) {}\n    ListNode(int x) : val(x), next(nullptr) {}\n    ListNode(int x, ListNode* next) : val(x), next(next) {}\n};\n*/\n\nclass Solution {\npublic:\n    ListNode* reverseList(ListNode* head) {\n        // TODO: implement the algorithm.\n        throw logic_error(\"TODO\");\n    }\n};\n"
+  },
+  "217": {
+    "slug": "contains-duplicate",
+    "java": "import java.util.*;\n\nclass Solution {\n    public boolean containsDuplicate(int[] nums) {\n        // TODO: implement the algorithm.\n        throw new UnsupportedOperationException(\"TODO\");\n    }\n}\n",
+    "c": "#include <stdbool.h>\n#include <stddef.h>\n#include <stdlib.h>\n\nbool containsDuplicate(int* nums, int numsSize) {\n    // TODO: implement the algorithm; this placeholder is not a solution.\n    return false;\n}\n",
+    "cpp": "#include <vector>\n#include <string>\n#include <stdexcept>\nusing namespace std;\n\nclass Solution {\npublic:\n    bool containsDuplicate(vector<int>& nums) {\n        // TODO: implement the algorithm.\n        throw logic_error(\"TODO\");\n    }\n};\n"
+  },
+  "226": {
+    "slug": "invert-binary-tree",
+    "java": "import java.util.*;\n\n/* LeetCode supplies this type; do not redeclare it when submitting.\nclass TreeNode {\n    int val;\n    TreeNode left;\n    TreeNode right;\n    TreeNode() {}\n    TreeNode(int val) { this.val = val; }\n    TreeNode(int val, TreeNode left, TreeNode right) {\n        this.val = val; this.left = left; this.right = right;\n    }\n}\n*/\n\nclass Solution {\n    public TreeNode invertTree(TreeNode root) {\n        // TODO: implement the algorithm.\n        throw new UnsupportedOperationException(\"TODO\");\n    }\n}\n",
+    "c": "#include <stdbool.h>\n#include <stddef.h>\n#include <stdlib.h>\n\n/* LeetCode supplies this type; do not redeclare it when submitting.\nstruct TreeNode {\n    int val;\n    struct TreeNode* left;\n    struct TreeNode* right;\n};\n*/\n\nstruct TreeNode* invertTree(struct TreeNode* root) {\n    // TODO: implement the algorithm; this placeholder is not a solution.\n    return NULL;\n}\n",
+    "cpp": "#include <vector>\n#include <string>\n#include <stdexcept>\nusing namespace std;\n\n/* LeetCode supplies this type; do not redeclare it when submitting.\nstruct TreeNode {\n    int val;\n    TreeNode* left;\n    TreeNode* right;\n    TreeNode() : val(0), left(nullptr), right(nullptr) {}\n    TreeNode(int x) : val(x), left(nullptr), right(nullptr) {}\n    TreeNode(int x, TreeNode* left, TreeNode* right) : val(x), left(left), right(right) {}\n};\n*/\n\nclass Solution {\npublic:\n    TreeNode* invertTree(TreeNode* root) {\n        // TODO: implement the algorithm.\n        throw logic_error(\"TODO\");\n    }\n};\n"
+  },
+  "242": {
+    "slug": "valid-anagram",
+    "java": "import java.util.*;\n\nclass Solution {\n    public boolean isAnagram(String s, String t) {\n        // TODO: implement the algorithm.\n        throw new UnsupportedOperationException(\"TODO\");\n    }\n}\n",
+    "c": "#include <stdbool.h>\n#include <stddef.h>\n#include <stdlib.h>\n\nbool isAnagram(char* s, char* t) {\n    // TODO: implement the algorithm; this placeholder is not a solution.\n    return false;\n}\n",
+    "cpp": "#include <vector>\n#include <string>\n#include <stdexcept>\nusing namespace std;\n\nclass Solution {\npublic:\n    bool isAnagram(string s, string t) {\n        // TODO: implement the algorithm.\n        throw logic_error(\"TODO\");\n    }\n};\n"
+  },
+  "322": {
+    "slug": "coin-change",
+    "java": "import java.util.*;\n\nclass Solution {\n    public int coinChange(int[] coins, int amount) {\n        // TODO: implement the algorithm.\n        throw new UnsupportedOperationException(\"TODO\");\n    }\n}\n",
+    "c": "#include <stdbool.h>\n#include <stddef.h>\n#include <stdlib.h>\n\nint coinChange(int* coins, int coinsSize, int amount) {\n    // TODO: implement the algorithm; this placeholder is not a solution.\n    return 0;\n}\n",
+    "cpp": "#include <vector>\n#include <string>\n#include <stdexcept>\nusing namespace std;\n\nclass Solution {\npublic:\n    int coinChange(vector<int>& coins, int amount) {\n        // TODO: implement the algorithm.\n        throw logic_error(\"TODO\");\n    }\n};\n"
+  },
+  "704": {
+    "slug": "binary-search",
+    "java": "import java.util.*;\n\nclass Solution {\n    public int search(int[] nums, int target) {\n        // TODO: implement the algorithm.\n        throw new UnsupportedOperationException(\"TODO\");\n    }\n}\n",
+    "c": "#include <stdbool.h>\n#include <stddef.h>\n#include <stdlib.h>\n\nint search(int* nums, int numsSize, int target) {\n    // TODO: implement the algorithm; this placeholder is not a solution.\n    return 0;\n}\n",
+    "cpp": "#include <vector>\n#include <string>\n#include <stdexcept>\nusing namespace std;\n\nclass Solution {\npublic:\n    int search(vector<int>& nums, int target) {\n        // TODO: implement the algorithm.\n        throw logic_error(\"TODO\");\n    }\n};\n"
+  },
+  "739": {
+    "slug": "daily-temperatures",
+    "java": "import java.util.*;\n\nclass Solution {\n    public int[] dailyTemperatures(int[] temperatures) {\n        // TODO: implement the algorithm.\n        throw new UnsupportedOperationException(\"TODO\");\n    }\n}\n",
+    "c": "#include <stdbool.h>\n#include <stddef.h>\n#include <stdlib.h>\n\nint* dailyTemperatures(int* temperatures, int temperaturesSize, int* returnSize) {\n    // TODO: implement the algorithm; this placeholder is not a solution.\n    *returnSize = 0;\n    // Allocate output rows/arrays as needed; the caller frees the result.\n    return NULL;\n}\n",
+    "cpp": "#include <vector>\n#include <string>\n#include <stdexcept>\nusing namespace std;\n\nclass Solution {\npublic:\n    vector<int> dailyTemperatures(vector<int>& temperatures) {\n        // TODO: implement the algorithm.\n        throw logic_error(\"TODO\");\n    }\n};\n"
+  },
+  "994": {
+    "slug": "rotting-oranges",
+    "java": "import java.util.*;\n\nclass Solution {\n    public int orangesRotting(int[][] grid) {\n        // TODO: implement the algorithm.\n        throw new UnsupportedOperationException(\"TODO\");\n    }\n}\n",
+    "c": "#include <stdbool.h>\n#include <stddef.h>\n#include <stdlib.h>\n\nint orangesRotting(int** grid, int gridSize, int* gridColSize) {\n    // TODO: implement the algorithm; this placeholder is not a solution.\n    return 0;\n}\n",
+    "cpp": "#include <vector>\n#include <string>\n#include <stdexcept>\nusing namespace std;\n\nclass Solution {\npublic:\n    int orangesRotting(vector<vector<int>>& grid) {\n        // TODO: implement the algorithm.\n        throw logic_error(\"TODO\");\n    }\n};\n"
+  },
+  "1143": {
+    "slug": "longest-common-subsequence",
+    "java": "import java.util.*;\n\nclass Solution {\n    public int longestCommonSubsequence(String text1, String text2) {\n        // TODO: implement the algorithm.\n        throw new UnsupportedOperationException(\"TODO\");\n    }\n}\n",
+    "c": "#include <stdbool.h>\n#include <stddef.h>\n#include <stdlib.h>\n\nint longestCommonSubsequence(char* text1, char* text2) {\n    // TODO: implement the algorithm; this placeholder is not a solution.\n    return 0;\n}\n",
+    "cpp": "#include <vector>\n#include <string>\n#include <stdexcept>\nusing namespace std;\n\nclass Solution {\npublic:\n    int longestCommonSubsequence(string text1, string text2) {\n        // TODO: implement the algorithm.\n        throw logic_error(\"TODO\");\n    }\n};\n"
+  }
+}

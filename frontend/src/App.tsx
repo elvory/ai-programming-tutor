@@ -24,6 +24,7 @@ import {
   X,
 } from "lucide-react";
 import { api, ApiError } from "./api";
+import { isLanguage, LANGUAGES, problemTemplate } from "./languages";
 import { AssistantPanel } from "./components/AssistantPanel";
 import { CodePanel } from "./components/CodePanel";
 import { HistoryPage } from "./components/HistoryPage";
@@ -34,6 +35,7 @@ import { SettingsDialog } from "./components/SettingsDialog";
 import { SplitHandle } from "./components/SplitHandle";
 import {
   readPreference,
+  bufferKey,
   rememberRevision,
   restoreCode,
   sameSnapshot,
@@ -44,6 +46,7 @@ import {
 import type {
   Bootstrap,
   DiagnosisResult,
+  Language,
   MobilePanel,
   Page,
   Problem,
@@ -60,6 +63,10 @@ export default function App() {
   const [bootError, setBootError] = useState("");
   const [problem, setProblem] = useState<Problem | null>(null);
   const [code, setCode] = useState("");
+  const [language, setLanguage] = useState<Language>(() => {
+    const preferred = readPreference<unknown>("lastLanguage", "python");
+    return isLanguage(preferred) ? preferred : "python";
+  });
   const [page, setPage] = useState<Page>("workbench");
   const [result, setResult] = useState<DiagnosisResult | null>(null);
   const [loading, setLoading] = useState(false);
@@ -92,8 +99,8 @@ export default function App() {
   const [storageError, setStorageError] = useState(false);
   const identity = useRef(tabIdentity());
   const snapshot = useRef<Snapshot | null>(null);
-  const memoryDrafts = useRef<Record<number, string>>({});
-  const dirtyDrafts = useRef(new Set<number>());
+  const memoryDrafts = useRef<Record<string, string>>({});
+  const dirtyDrafts = useRef(new Set<string>());
   const controller = useRef<AbortController | null>(null);
   const noticeTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
@@ -102,10 +109,10 @@ export default function App() {
     setNotice(message);
     noticeTimer.current = setTimeout(() => setNotice(""), 6500);
   }
-  function nextSnapshot(selected: Problem, source: string): Snapshot {
+  function nextSnapshot(selected: Problem, source: string, selectedLanguage: Language = language): Snapshot {
     identity.current.revision++;
     rememberRevision(identity.current.revision);
-    const next = { ...identity.current, problem_id: selected.id, code: source };
+    const next = { ...identity.current, problem_id: selected.id, code: source, language: selectedLanguage };
     snapshot.current = next;
     return next;
   }
@@ -126,13 +133,14 @@ export default function App() {
         showNotice(reason.message);
     });
   }
-  function selectProblem(selected: Problem) {
-    let source = memoryDrafts.current[selected.id] ?? selected.python_template;
-    if (dirtyDrafts.current.has(selected.id)) {
+  function selectProblem(selected: Problem, selectedLanguage: Language = language) {
+    const key = bufferKey(selected.id, selectedLanguage);
+    let source = memoryDrafts.current[key] ?? problemTemplate(selected, selectedLanguage);
+    if (dirtyDrafts.current.has(key)) {
       setStorageError(true);
     } else {
       try {
-        source = restoreCode(selected.id, source, localStorage);
+        source = restoreCode(selected.id, source, localStorage, selectedLanguage);
         setStorageError(dirtyDrafts.current.size > 0);
       } catch {
         setStorageError(true);
@@ -141,24 +149,28 @@ export default function App() {
         );
       }
     }
-    memoryDrafts.current[selected.id] = source;
+    memoryDrafts.current[key] = source;
     invalidateDiagnosis();
-    const next = nextSnapshot(selected, source);
+    const next = nextSnapshot(selected, source, selectedLanguage);
     setProblem(selected);
     setCode(source);
+    setLanguage(selectedLanguage);
     setPage("workbench");
     storePreference("lastProblem", selected.id);
+    storePreference("lastLanguage", selectedLanguage);
     sync(next);
   }
-  function updateCode(source: string) {
-    if (!problem || source === snapshot.current?.code) return;
-    memoryDrafts.current[problem.id] = source;
+  function updateCode(source: string, expectedProblem = problem?.id, expectedLanguage = language) {
+    if (!problem || snapshot.current?.problem_id !== expectedProblem
+      || snapshot.current?.language !== expectedLanguage || source === snapshot.current?.code) return;
+    const key = bufferKey(problem.id, language);
+    memoryDrafts.current[key] = source;
     try {
-      saveCode(problem.id, source, localStorage);
-      dirtyDrafts.current.delete(problem.id);
+      saveCode(problem.id, source, localStorage, language);
+      dirtyDrafts.current.delete(key);
       setStorageError(dirtyDrafts.current.size > 0);
     } catch {
-      dirtyDrafts.current.add(problem.id);
+      dirtyDrafts.current.add(key);
       setStorageError(true);
     }
     invalidateDiagnosis();
@@ -305,12 +317,12 @@ export default function App() {
     if (
       !problem ||
       !confirm(
-        "你确认已在 LeetCode 官方提交这道题并通过吗？此状态为用户自报，不额外增加本地提交次数。",
+        `你确认已使用 ${LANGUAGES[language].label} 在 LeetCode 官方提交这道题并通过吗？此状态为用户自报，不额外增加本地提交次数。`,
       )
     )
       return;
     try {
-      await api.accepted(problem.id);
+      await api.accepted(problem.id, language);
       showNotice("已记录用户自报的 LeetCode 通过状态。");
       await refreshData();
     } catch (reason) {
@@ -558,7 +570,9 @@ export default function App() {
                 ) : (
                   <ProblemPanel
                     problem={problem}
-                    accepted={completed.includes(problem.id)}
+                    language={language}
+                    accepted={data.summary.completed_by_language?.[language]?.includes(problem.id) ?? false}
+                    overallAccepted={completed.includes(problem.id)}
                     refreshKey={refreshKey}
                     onCollapse={() => setLeftCollapsed(true)}
                     onAccept={() => void markAccepted()}
@@ -576,12 +590,16 @@ export default function App() {
                 />
                 <CodePanel
                   problem={problem}
+                  language={language}
+                  onLanguage={(value) => {
+                    if (value !== language) selectProblem(problem, value);
+                  }}
                   code={code}
                   fontSize={fontSize}
                   fullscreen={fullscreen}
                   testHeight={layout.test}
                   storageError={storageError}
-                  onCode={updateCode}
+                  onCode={(source) => updateCode(source, problem.id, language)}
                   onFontSize={setFontSize}
                   onFullscreen={() => setFullscreen((value) => !value)}
                   onTestHeight={(delta) =>
@@ -673,7 +691,7 @@ export default function App() {
                 <Command size={10} />
                 本地草稿 · 自动保存
               </span>
-              <span>Python 3</span>
+              <span>{LANGUAGES[language].label}</span>
               <span>AI 辅导仅作静态分析</span>
             </span>
           </footer>
@@ -692,21 +710,23 @@ export default function App() {
               getUnsavedDrafts={() =>
                 Object.fromEntries(
                   [...dirtyDrafts.current].map((id) => [
-                    String(id),
+                    id,
                     memoryDrafts.current[id],
                   ]),
                 )
               }
+              getMemoryDrafts={() => ({ ...memoryDrafts.current })}
               onClose={() => setSettingsOpen(false)}
               onResetLayout={resetLayout}
               onImported={() => {
                 if (!problem) return;
-                if (dirtyDrafts.current.has(problem.id)) return;
+                if (dirtyDrafts.current.has(bufferKey(problem.id, language))) return;
                 try {
                   const restored = restoreCode(
                     problem.id,
-                    problem.python_template,
+                    problemTemplate(problem, language),
                     localStorage,
+                    language,
                   );
                   if (restored !== snapshot.current?.code) updateCode(restored);
                 } catch {

@@ -96,7 +96,7 @@ export function AssistantPanel({
             <LoaderCircle className="spin" size={24} />
             <h3>正在阅读你的代码</h3>
             <p>结合题目与边界情况生成三级提示…</p>
-            <span>修改代码或切题会使本次结果失效</span>
+            <span>修改代码、切题或切换语言会使本次结果失效</span>
           </div>
         )}
         {!loading && !diagnosis && tab === "hints" && (

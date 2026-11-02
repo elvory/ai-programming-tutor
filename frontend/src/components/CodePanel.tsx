@@ -16,11 +16,14 @@ import {
   Terminal,
 } from "lucide-react";
 import "../monaco";
+import { LANGUAGES, LANGUAGE_IDS, problemTemplate } from "../languages";
 import { SplitHandle } from "./SplitHandle";
-import type { Problem } from "../types";
+import type { Language, Problem } from "../types";
 
 interface Props {
   problem: Problem;
+  language: Language;
+  onLanguage: (value: Language) => void;
   code: string;
   fontSize: number;
   fullscreen: boolean;
@@ -34,6 +37,8 @@ interface Props {
 }
 export function CodePanel({
   problem,
+  language,
+  onLanguage,
   code,
   fontSize,
   fullscreen,
@@ -74,7 +79,7 @@ export function CodePanel({
         </span>
         <span className="file-path">
           <FileCode2 size={12} />
-          solution.py
+          solution.{LANGUAGES[language].extension}
         </span>
         <div className="push-right toolbar-icons">
           <button
@@ -92,10 +97,10 @@ export function CodePanel({
             onClick={() => {
               if (
                 confirm(
-                  "将当前题目的草稿重置为模板？这会覆盖本题当前代码，请先备份。",
+                  `将当前题目的 ${LANGUAGES[language].label} 草稿重置为模板？请先备份当前代码。`,
                 )
               )
-                onCode(problem.python_template);
+                onCode(problemTemplate(problem, language));
             }}
           >
             <RotateCcw size={14} />
@@ -119,9 +124,9 @@ export function CodePanel({
         <div className="editor-space">
           <div className="editor-toolbar">
             <label className="language-select">
-              <span className="python-mark">Py</span>
-              <select aria-label="编程语言" defaultValue="python">
-                <option value="python">Python 3</option>
+              <span className="python-mark">{LANGUAGES[language].mark}</span>
+              <select aria-label="编程语言" value={language} onChange={(event) => onLanguage(event.target.value as Language)}>
+                {LANGUAGE_IDS.map((id) => <option key={id} value={id}>{LANGUAGES[id].label}</option>)}
               </select>
               <ChevronDown size={11} />
             </label>
@@ -163,11 +168,11 @@ export function CodePanel({
               </select>
             </label>
           </div>
-          <div className="monaco-container" data-testid="monaco-container">
+          <div className="monaco-container" data-testid="monaco-container" data-language={language}>
             <Editor
-              key={problem.id}
-              path={`problem-${problem.id}.py`}
-              language="python"
+              key={`${problem.id}:${language}`}
+              path={`problem-${problem.id}-${language}.${LANGUAGES[language].extension}`}
+              language={language}
               value={code}
               theme="tutor-dark"
               loading={<div className="editor-loading">正在准备编辑器…</div>}
@@ -293,8 +298,7 @@ export function CodePanel({
                 <div>
                   <b>尚未执行代码</b>
                   <p>
-                    当前未接入安全的 Python
-                    执行环境，暂不提供实际输出、运行时间或判题结果。
+                    当前四种语言均未接入安全执行环境，暂不提供实际输出、运行时间或判题结果。
                   </p>
                 </div>
               </div>

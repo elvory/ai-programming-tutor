@@ -1806,7 +1806,17 @@ pre {
 }
 .settings-actions {
   display: flex;
+  flex-wrap: wrap;
   gap: 9px;
+}
+.history-table-wrap .language-badge {
+  display: inline-block;
+  border: 1px solid #30493d;
+  border-radius: 5px;
+  padding: 2px 7px;
+  color: #9cceb4;
+  background: #1b2b24;
+  white-space: nowrap;
 }
 .settings-actions .secondary-button {
   font-size: 10px;

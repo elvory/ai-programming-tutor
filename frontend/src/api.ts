@@ -2,6 +2,7 @@ import type {
   Bootstrap,
   DiagnosisResult,
   History,
+  Language,
   Problem,
   Snapshot,
 } from "./types";
@@ -102,9 +103,10 @@ export const api = {
       ...snapshot,
       submission_id: crypto.randomUUID(),
     }),
-  accepted: (problem_id: number) =>
+  accepted: (problem_id: number, language: Language = "python") =>
     post<{ ok: boolean }>("/accepted", {
       problem_id,
+      language,
       confirmed: true,
       event_id: crypto.randomUUID(),
     }),

@@ -22,6 +22,9 @@ def fake_response(request, **kwargs):
     payload = json.loads(request.data)
     context = json.loads(payload["input"])
     code = context["code"]
+    language = context.get("language", "python")
+    if language not in ("python", "java", "c", "cpp"):
+        raise AssertionError("Unsupported language reached the mock transport")
     if "QA_TIMEOUT" in code:
         raise TimeoutError("Synthetic timeout")
     if "QA_SLOW" in code:
@@ -30,11 +33,11 @@ def fake_response(request, **kwargs):
     diagnosis = {
         "error_type": "边界条件风险",
         "knowledge": "循环边界与返回值",
-        "analysis": f"结合《{title}》检查循环的最后一次访问，并确认返回值符合题目要求。这是浏览器验收使用的模拟网络响应。",
+        "analysis": f"当前语言 {language}。结合《{title}》检查循环的最后一次访问，并确认返回值符合题目要求。这是浏览器验收使用的模拟网络响应。",
         "hints": [
-            "先检查循环最后一次访问的位置。",
-            "用最短合法输入，手动列出每一步索引与返回值。",
-            "把访问索引始终保持在有效范围内，再对照示例检查返回值。",
+            f"使用 {language}，先检查循环最后一次访问的位置。",
+            f"对照 {language} 参数类型，用最短合法输入，手动列出每一步索引与返回值。",
+            f"检查 {language} 返回类型，把访问索引保持在有效范围内，再对照示例检查返回值。",
         ],
     }
     response = {"status": "completed", "output": [{"type": "message", "role": "assistant",

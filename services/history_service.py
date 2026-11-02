@@ -1,6 +1,7 @@
 """Read-only presentation of new and legacy learning history."""
 
 from services.record_service import validate_record
+from services.language_service import LANGUAGES
 
 
 def display_value(record, field):
@@ -56,11 +57,24 @@ def _accepted_ids(activities):
     return summarize_activity(activities, [])["completed_ids"]
 
 
-def _completion(record, accepted):
+def _completion(record, accepted, completed_by_language=None):
     problem_id = _problem_id(record)
     if problem_id is None:
         return "未记录题号"
+    language = record.get("language")
+    if isinstance(language, str) and language in LANGUAGES:
+        known = (completed_by_language or {}).get(language, [])
+        if problem_id in known:
+            return "用户自报本语言已通过（非官方同步）"
+        return "题目已通过，当前语言未确认" if problem_id in accepted else "未确认通过"
     return "用户自报已通过（非官方同步）" if problem_id in accepted else "未确认通过"
+
+
+def _language_label(record):
+    language = record.get("language")
+    if isinstance(language, str) and language in LANGUAGES:
+        return LANGUAGES[language]["label"]
+    return display_value(record, "language")
 
 
 def _diagnosis_metadata(diagnosis):
@@ -84,7 +98,9 @@ def build_history_rows(records, activities):
         "knowledge": "知识点", "hint_level": "Hint 等级",
     }
     rows = []
-    accepted = _accepted_ids(activities)
+    from services.activity_service import summarize_activity
+    summary = summarize_activity(activities, [])
+    accepted = summary["completed_ids"]
     for index, record in enumerate(records):
         status, issue = "完整", ""
         try:
@@ -108,11 +124,12 @@ def build_history_rows(records, activities):
                 "题目名称": _first_value(record, "title", "problem_title"),
                 "提交日期": _first_value(record, "created_at", "timestamp"),
                 "Hint 使用情况": _hint_usage(record),
-                "本地完成状态": _completion(record, accepted),
+                "本地完成状态": _completion(record, accepted, summary["completed_by_language"]),
+                "语言": _language_label(record),
             })
         else:
             row.update({field: "不适用" for field in (
-                "LeetCode 题号", "题目名称", "提交日期", "Hint 使用情况", "本地完成状态", "诊断来源", "请求模型")})
+                "LeetCode 题号", "题目名称", "提交日期", "Hint 使用情况", "本地完成状态", "诊断来源", "请求模型", "语言")})
         rows.append(row)
     return rows
 
@@ -121,7 +138,9 @@ def build_activity_rows(activities):
     """本地活动与AI诊断独立展示；所有异常项仍有对应表格行。"""
     from services.activity_service import validate_activity
 
-    accepted = _accepted_ids(activities)
+    from services.activity_service import summarize_activity
+    summary = summarize_activity(activities, [])
+    accepted = summary["completed_ids"]
     rows = []
     for index, activity in enumerate(activities):
         row = {"原始索引": str(index), "状态": "完整", "异常说明": ""}
@@ -143,13 +162,14 @@ def build_activity_rows(activities):
                 "活动类型": kind_label,
                 "提交日期": _first_value(activity, "timestamp", "created_at"),
                 "Hint 使用情况": _hint_usage(activity),
-                "本地完成状态": _completion(activity, accepted),
+                "本地完成状态": _completion(activity, accepted, summary["completed_by_language"]),
+                "语言": _language_label(activity),
             })
             diagnosis = activity.get("diagnosis")
             row.update(_diagnosis_metadata(diagnosis))
             row["错误类型"] = display_value(diagnosis, "error_type") if isinstance(diagnosis, dict) else "未记录"
         else:
             row.update({field: "不适用" for field in (
-                "LeetCode 题号", "题目名称", "活动类型", "提交日期", "Hint 使用情况", "本地完成状态", "错误类型", "诊断来源", "请求模型")})
+                "LeetCode 题号", "题目名称", "活动类型", "提交日期", "Hint 使用情况", "本地完成状态", "错误类型", "诊断来源", "请求模型", "语言")})
         rows.append(row)
     return rows
