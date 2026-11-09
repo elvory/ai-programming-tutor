@@ -164,9 +164,13 @@ def _public_diagnosis(entry):
             "language": entry.state.get("diagnosis_language", "python")}
 
 
-def create_app(*, workspace_limit=512):
+def create_app(*, workspace_limit=512, execution_service=None):
     app = FastAPI(title="AI Programming Tutor", version="3.0", docs_url=None, redoc_url=None)
     workspaces = Workspaces(workspace_limit)
+    # Optional execution is additive and never synchronizes the AI workspace.
+    from backend.execution.routes import install_execution
+    from backend.execution.service import ExecutionService
+    install_execution(app, execution_service if execution_service is not None else ExecutionService())
 
     @app.exception_handler(RequestValidationError)
     async def invalid_request(_request, _error):

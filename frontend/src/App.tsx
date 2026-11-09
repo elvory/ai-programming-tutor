@@ -24,6 +24,7 @@ import {
   X,
 } from "lucide-react";
 import { api, ApiError } from "./api";
+import { useExecution } from "./useExecution";
 import { isLanguage, LANGUAGES, problemTemplate } from "./languages";
 import { AssistantPanel } from "./components/AssistantPanel";
 import { CodePanel } from "./components/CodePanel";
@@ -97,6 +98,7 @@ export default function App() {
   );
   const [notice, setNotice] = useState("");
   const [storageError, setStorageError] = useState(false);
+  const execution = useExecution();
   const identity = useRef(tabIdentity());
   const snapshot = useRef<Snapshot | null>(null);
   const memoryDrafts = useRef<Record<string, string>>({});
@@ -150,6 +152,7 @@ export default function App() {
       }
     }
     memoryDrafts.current[key] = source;
+    execution.invalidate();
     invalidateDiagnosis();
     const next = nextSnapshot(selected, source, selectedLanguage);
     setProblem(selected);
@@ -163,6 +166,7 @@ export default function App() {
   function updateCode(source: string, expectedProblem = problem?.id, expectedLanguage = language) {
     if (!problem || snapshot.current?.problem_id !== expectedProblem
       || snapshot.current?.language !== expectedLanguage || source === snapshot.current?.code) return;
+    execution.invalidate();
     const key = bufferKey(problem.id, language);
     memoryDrafts.current[key] = source;
     try {
@@ -599,6 +603,12 @@ export default function App() {
                   fullscreen={fullscreen}
                   testHeight={layout.test}
                   storageError={storageError}
+                  execution={execution.state}
+                  onRun={() => {
+                    const current = snapshot.current;
+                    if (current) void execution.run({ problem_id: current.problem_id,
+                      language: current.language ?? "python", code: current.code });
+                  }}
                   onCode={(source) => updateCode(source, problem.id, language)}
                   onFontSize={setFontSize}
                   onFullscreen={() => setFullscreen((value) => !value)}

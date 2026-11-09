@@ -1,0 +1,308 @@
+{
+  "date": "2026-11-09",
+  "baseline": {
+    "branch": "main",
+    "head": "9911e0524ee3dc9e9d9f79d91b4c5552bf2bcc33",
+    "prior_m1_day1_changes_preserved": true
+  },
+  "automated": {
+    "python": {
+      "total": 197,
+      "passed": 182,
+      "skipped": 15,
+      "failed": 0
+    },
+    "frontend": {
+      "passed": 71,
+      "files": 11,
+      "failed": 0
+    },
+    "typescript": "passed",
+    "production_build": "passed",
+    "python_syntax": {
+      "files": 48,
+      "status": "passed"
+    },
+    "powershell_syntax": "passed",
+    "pip_check": "passed",
+    "npm_ls": "passed"
+  },
+  "docker": {
+    "first_attempt": {
+      "executed_tests": 0,
+      "setup_errors": 1,
+      "reason": "docker ps exceeded existing 5-second timeout during parallel regression/build load"
+    },
+    "unchanged_serial_rerun": {
+      "passed": 15,
+      "failed": 0,
+      "skipped": 0
+    },
+    "remaining_m1_containers": 0,
+    "cleanup_observation": "immediately after the successful real test run",
+    "final_recheck": {
+      "engine_available": false,
+      "reason": "dockerDesktopLinuxEngine named pipe not found during final delivery check",
+      "container_inventory": "not reverified because engine is unavailable",
+      "tests_rerun": false,
+      "qa_processes_remaining": 0,
+      "test_ports_listening": 0
+    }
+  },
+  "browser": {
+    "legacy_core": {
+      "passed_checks": 15
+    },
+    "layout_boundaries": {
+      "passed_checks": 17
+    },
+    "draft_migration": {
+      "passed_checks": 3
+    },
+    "multilingual": {
+      "scenario": "production build + real FastAPI/services + temporary data + mocked DeepSeek HTTP",
+      "checks": [
+        "365-day real service heatmap remains",
+        "six complete dimension labels rendered",
+        "empty profile warns insufficient evidence",
+        "radar has actual hexagonal 0–100 grid",
+        "Python remains default language",
+        "python edited in real Monaco",
+        "python has independent Monaco model and real keyword highlighting",
+        "java edited in real Monaco",
+        "java has independent Monaco model and real keyword highlighting",
+        "c edited in real Monaco",
+        "c has independent Monaco model and real keyword highlighting",
+        "cpp edited in real Monaco",
+        "cpp has independent Monaco model and real keyword highlighting",
+        "python draft survives problem/language switches",
+        "python buffer restores unicode content",
+        "java draft survives problem/language switches",
+        "java buffer restores unicode content",
+        "c draft survives problem/language switches",
+        "c buffer restores unicode content",
+        "cpp draft survives problem/language switches",
+        "cpp buffer restores unicode content",
+        "language preference survives reload",
+        "python draft visible after reload",
+        "java draft visible after reload",
+        "c draft visible after reload",
+        "cpp draft visible after reload",
+        "intentionally empty C draft survives language switch",
+        "intentionally empty C draft survives reload",
+        "python diagnosis sends actual language parameter",
+        "python initially exposes only Hint 1",
+        "python mocked response carries matching language",
+        "python exactly three progressive hints",
+        "python diagnosis records once without submitting",
+        "java diagnosis sends actual language parameter",
+        "java initially exposes only Hint 1",
+        "java mocked response carries matching language",
+        "java exactly three progressive hints",
+        "java diagnosis records once without submitting",
+        "c diagnosis sends actual language parameter",
+        "c initially exposes only Hint 1",
+        "c mocked response carries matching language",
+        "c exactly three progressive hints",
+        "c diagnosis records once without submitting",
+        "cpp diagnosis sends actual language parameter",
+        "cpp initially exposes only Hint 1",
+        "cpp mocked response carries matching language",
+        "cpp exactly three progressive hints",
+        "cpp diagnosis records once without submitting",
+        "explicit local submission updates service heatmap",
+        "local submission does not imply passed problem",
+        "self-report UI records 1/python with language-specific confirmation",
+        "self-report UI records 1/java with language-specific confirmation",
+        "self-report UI records 217/c with language-specific confirmation",
+        "self-report UI records 125/cpp with language-specific confirmation",
+        "four accepted events across languages count three unique problems",
+        "array/hash completion uses real 2/4 denominator",
+        "history displays submission language",
+        "radar refreshes from actual accepted events",
+        "radar hover exposes actual completed/total data",
+        "desktop heatmap left and radar right",
+        "recommended problem checklist fills lower-left space",
+        "problem checklist sits directly below the heatmap",
+        "checklist shows actual four stage-two catalog problems",
+        "checklist opens actual exercise with current language preserved",
+        "mobile overview stacks vertically",
+        "mobile dashboard has no horizontal page overflow",
+        "language switch during pending request prevents saved stale diagnosis",
+        "stale other-language hints never reappear",
+        "zero page/console errors: ",
+        "zero unexpected network failures: "
+      ],
+      "check_count": 70,
+      "page_errors": [],
+      "failed_requests": [],
+      "real_deepseek_requests": 0
+    },
+    "execution": {
+      "fixture": "temporary-data;mock-deepseek",
+      "execution": "real-docker",
+      "checks": [
+        "fresh fixture defaults to Python",
+        "run button disabled while request is pending",
+        "real execution endpoint returns a structured response",
+        "real Docker status SUCCESS",
+        "result identifies public examples",
+        "cleanup confirmed without official acceptance",
+        "correct Two Sum passes public example",
+        "page shows both real stdout and stderr",
+        "page shows measured sandbox time",
+        "run button disabled while request is pending",
+        "real execution endpoint returns a structured response",
+        "real Docker status SUCCESS",
+        "result identifies public examples",
+        "cleanup confirmed without official acceptance",
+        "wrong answer is distinct from successful execution",
+        "run button disabled while request is pending",
+        "real execution endpoint returns a structured response",
+        "real Docker status COMPILE_ERROR",
+        "result identifies public examples",
+        "cleanup confirmed without official acceptance",
+        "page shows actual syntax diagnostic",
+        "run button disabled while request is pending",
+        "real execution endpoint returns a structured response",
+        "real Docker status RUNTIME_ERROR",
+        "result identifies public examples",
+        "cleanup confirmed without official acceptance",
+        "page shows runtime diagnostic",
+        "run button disabled while request is pending",
+        "real execution endpoint returns a structured response",
+        "real Docker status TIME_LIMIT_EXCEEDED",
+        "result identifies public examples",
+        "cleanup confirmed without official acceptance",
+        "page identifies real external timeout",
+        "edit: old request finishes and cleans up in Docker",
+        "edit: duplicate clicks issue only one execution",
+        "edit: late Docker output is discarded",
+        "edit: obsolete result requires a new run",
+        "Java execution remains unavailable",
+        "language: old request finishes and cleans up in Docker",
+        "language: duplicate clicks issue only one execution",
+        "language: late Docker output is discarded",
+        "language: obsolete result requires a new run",
+        "other problems remain unavailable",
+        "problem: old request finishes and cleans up in Docker",
+        "problem: duplicate clicks issue only one execution",
+        "problem: late Docker output is discarded",
+        "problem: obsolete result requires a new run",
+        "run button disabled while request is pending",
+        "real execution endpoint returns a structured response",
+        "real Docker status SUCCESS",
+        "result identifies public examples",
+        "cleanup confirmed without official acceptance",
+        "execution preserves all three existing AI hints",
+        "execution does not append AI history",
+        "execution and diagnosis do not alter submissions, green wall or radar",
+        "java shows unavailable execution without fake result",
+        "c shows unavailable execution without fake result",
+        "cpp shows unavailable execution without fake result",
+        "Python draft survives page reload",
+        "java draft survives page reload",
+        "c draft survives page reload",
+        "cpp draft survives page reload",
+        "run button disabled while request is pending",
+        "real execution endpoint returns a structured response",
+        "real Docker status SUCCESS",
+        "result identifies public examples",
+        "cleanup confirmed without official acceptance",
+        "execution token is not stored in localStorage or sessionStorage",
+        "run button remains available at mobile width",
+        "mobile page has no horizontal overflow",
+        "browser has no uncaught page errors"
+      ],
+      "outcomes": [
+        {
+          "status": "SUCCESS",
+          "passed": 1,
+          "total": 1,
+          "execution_time_ms": 438,
+          "cleanup_confirmed": true
+        },
+        {
+          "status": "SUCCESS",
+          "passed": 0,
+          "total": 1,
+          "execution_time_ms": 344,
+          "cleanup_confirmed": true
+        },
+        {
+          "status": "COMPILE_ERROR",
+          "passed": 0,
+          "total": 1,
+          "execution_time_ms": 391,
+          "cleanup_confirmed": true
+        },
+        {
+          "status": "RUNTIME_ERROR",
+          "passed": 0,
+          "total": 1,
+          "execution_time_ms": 359,
+          "cleanup_confirmed": true
+        },
+        {
+          "status": "TIME_LIMIT_EXCEEDED",
+          "passed": 0,
+          "total": 1,
+          "execution_time_ms": 3047,
+          "cleanup_confirmed": true
+        },
+        {
+          "status": "SUCCESS",
+          "passed": 1,
+          "total": 1,
+          "execution_time_ms": 344,
+          "cleanup_confirmed": true
+        },
+        {
+          "status": "SUCCESS",
+          "passed": 1,
+          "total": 1,
+          "execution_time_ms": 390,
+          "cleanup_confirmed": true
+        }
+      ],
+      "execution_requests": 10,
+      "page_errors": [],
+      "screenshots": [
+        "day2-execution-desktop.png",
+        "day2-execution-mobile.png"
+      ]
+    }
+  },
+  "live_ai": {
+    "network": "real DeepSeek via original llm_service",
+    "manual_browser_diagnosis_clicks": 1,
+    "source": "DeepSeek",
+    "model": "deepseek-flash",
+    "hint_count": 3,
+    "hints": [
+      "题目要求返回的是哪两个位置？这两个位置在数组中是否一定相邻？请再看一遍示例和约束中“不同位置”的含义。",
+      "考虑输入 nums = [2, 3, 5], target = 7，正确答案应该是哪两个下标？你的循环依次检查了哪些下标对？",
+      "要覆盖所有可能的下标对，外层循环固定 i 后，内层循环应该从哪个下标开始、到哪里结束？注意 i 和 j 必须满足什么大小关系。"
+    ],
+    "hint_usage": "Hint 1、2、3",
+    "record_count": 1,
+    "activity_count": 0,
+    "total_submissions": 0,
+    "completed_problems": 0,
+    "temporary_data": true,
+    "screenshot": "day2-live-ai.png"
+  },
+  "startup": {
+    "script": "scripts/start_workbench.ps1",
+    "python": "D:\\anaconda\\envs\\ai-study\\python.exe",
+    "smoke_port": 18000,
+    "health_ok": true,
+    "static_index_http_status": 200
+  },
+  "credentials": {
+    "env_content_not_inspected": true,
+    "no_key_values_logged": true,
+    "real_api_transport": "original server-side llm_service; at most one upstream call",
+    "ordinary_automated_ai": "mocked"
+  }
+}

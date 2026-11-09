@@ -1,0 +1,32 @@
+{
+  "date": "2026-11-09",
+  "browser": "Playwright CLI / installed Chromium browser",
+  "fixture": "temporary-data;mock-deepseek",
+  "execution": "real-docker",
+  "execution_requests_in_complete_run": 10,
+  "all_checks_passed": true,
+  "outcomes": [
+    {"scenario": "correct_two_sum", "status": "SUCCESS", "passed": 1, "total": 1, "execution_time_ms": 344, "cleanup_confirmed": true},
+    {"scenario": "wrong_two_sum", "status": "SUCCESS", "passed": 0, "total": 1, "execution_time_ms": 328, "cleanup_confirmed": true},
+    {"scenario": "syntax_error", "status": "COMPILE_ERROR", "passed": 0, "total": 1, "execution_time_ms": 328, "cleanup_confirmed": true},
+    {"scenario": "runtime_error", "status": "RUNTIME_ERROR", "passed": 0, "total": 1, "execution_time_ms": 328, "cleanup_confirmed": true},
+    {"scenario": "infinite_loop", "status": "TIME_LIMIT_EXCEEDED", "passed": 0, "total": 1, "execution_time_ms": 3046, "cleanup_confirmed": true},
+    {"scenario": "run_with_three_ai_hints", "status": "SUCCESS", "passed": 1, "total": 1, "execution_time_ms": 359, "cleanup_confirmed": true},
+    {"scenario": "run_after_reload", "status": "SUCCESS", "passed": 1, "total": 1, "execution_time_ms": 359, "cleanup_confirmed": true}
+  ],
+  "late_result_scenarios": [
+    {"change": "edit_A_B_A", "old_docker_status": "SUCCESS", "cleanup_confirmed": true, "execution_requests": 1, "late_output_displayed": false},
+    {"change": "language_python_java_python", "old_docker_status": "SUCCESS", "cleanup_confirmed": true, "execution_requests": 1, "late_output_displayed": false},
+    {"change": "problem_1_other_1", "old_docker_status": "SUCCESS", "cleanup_confirmed": true, "execution_requests": 1, "late_output_displayed": false}
+  ],
+  "regressions_passed": [
+    "stdout_stderr_and_measured_time", "unsupported_languages_and_problems",
+    "four_language_drafts_after_reload", "three_progressive_ai_hints_preserved",
+    "no_execution_ai_history_append", "submissions_heatmap_and_radar_unchanged",
+    "token_not_in_localStorage_or_sessionStorage", "mobile_button_visible",
+    "no_mobile_horizontal_overflow"
+  ],
+  "page_errors": [],
+  "viewport_sizes": [{"width": 1600, "height": 1100}, {"width": 390, "height": 844}],
+  "screenshots": ["m3-lite-desktop.png", "m3-lite-mobile.png"]
+}

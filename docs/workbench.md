@@ -1,5 +1,7 @@
 # V3 编程工作台
 
+> 阶段说明：本文记录早期 React 工作台迁移。四语言、画像、Docker API 和网页运行已在后续阶段完成；文中的旧功能范围不作为当前交付声明。当前范围与启动方法见 [README](../README.md)，最终验证见 [Day 2 验收](../outputs/day2-final-acceptance-report.md)。
+
 本次迁移升级界面，保留现有题库、Python 业务规则、DeepSeek Responses 请求、结构化输出与三级 Hint 严格校验。正式学习数据不做迁移或重置。
 
 ## 架构与迁移范围

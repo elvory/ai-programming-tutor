@@ -1,21 +1,132 @@
 # AI Programming Tutor · V3 Workbench
 
-基于现有 Python 业务服务的算法练习与渐进式编程辅导工具。新版采用 React + TypeScript + Monaco 三栏工作台，支持 Python 3、Java、C、C++ 的编辑、独立草稿及 DeepSeek 静态诊断，并提供六维题库完成度画像。FastAPI 连接界面与既有服务；原 Streamlit + Ace 页面保留可运行。
+基于现有 Python 业务服务的算法练习与渐进式编程辅导工具。新版采用 React + TypeScript + Monaco 三栏工作台，支持 Python 3、Java、C、C++ 的编辑、独立草稿及 DeepSeek 静态诊断，并提供六维题库完成度画像。Python 两数之和已接入 Docker 网页运行。FastAPI 连接界面与既有服务；原 Streamlit + Ace 页面保留可运行。
+
+本项目定位为**本地课程教学原型**。四语言编辑不等于四语言执行；当前只执行 Python + Two Sum 的一个公开示例，没有全部 32 题的正式本地判题，也不代表 LeetCode 官方 Accepted。它不是生产级恶意代码执行平台。
+
+## 功能与交付范围
+
+| 模块 | 当前能力 |
+|---|---|
+| 题库与路线 | 32 道精选题、8 个学习阶段、搜索筛选和推荐题单 |
+| 编辑与草稿 | 四语言 Monaco、128 份独立模板、按题号和语言保存、备份导入与恢复 |
+| AI 辅导 | DeepSeek Responses 结构化诊断、错误类型/知识点/分析、三级渐进 Hint |
+| 学习记录 | 诊断历史、本地提交、用户自报通过、365 天绿墙 |
+| 六维画像 | 按不同题号的自报完成度计算，不评估真实算法能力 |
+| 网页运行 | Python + #1 两数之和，一个服务端公开示例；真实输出、错误、耗时和结果比较 |
+| 兼容界面 | 原 Streamlit/Ace 页面继续保留 |
+
+## 技术栈与系统架构
+
+| 层次 | 技术 |
+|---|---|
+| 前端 | React、TypeScript、Vite、Monaco Editor、Recharts、Lucide React、CSS |
+| 后端 | Python、FastAPI、Pydantic、Uvicorn；原 Streamlit 服务保留 |
+| AI | DeepSeek Responses API、JSON Schema、python-dotenv、标准库 HTTP 客户端 |
+| 存储 | JSON；浏览器 localStorage/sessionStorage；没有新增 SQLite 或云数据库 |
+| 执行 | Docker Desktop + WSL2 Linux Engine；标准库管理受控 Docker CLI |
+| 验证 | unittest、Vitest、React Testing Library、Playwright CLI、独立 Docker 集成测试 |
+
+```mermaid
+flowchart TD
+    Browser[React 工作台与 Monaco] --> API[FastAPI]
+    Browser --> Draft[浏览器独立草稿]
+    API --> Catalog[题库与四语言模板服务]
+    API --> AI[练习状态机与 AI 诊断服务]
+    AI --> DeepSeek[DeepSeek Responses API]
+    API --> Records[历史与学习活动服务]
+    Records --> JSON[本地 JSON 记录]
+    Records --> Radar[绿墙与六维完成度]
+    API --> Exec[执行服务与 Docker Runner]
+    Exec --> Container[临时 Python 容器]
+    Container --> Judge[容器外公开示例比较器]
+    Judge --> API
+    Guard[独立截止时间守护] --> Container
+    Legacy[原 Streamlit 界面] --> Catalog
+    Legacy --> AI
+    Legacy --> Records
+```
+
+Runner 目前与本机 API 同进程，拥有 Docker 管理权限；独立守护只负责回收，不等于独立低权限执行 Worker。公网部署需要另行设计和安全评审。
+
+## 目录结构
+
+```text
+D:\Projects\Python\ai-programming-tutor
+├─ backend/              FastAPI；execution/ 为 M1 执行模块
+├─ frontend/             React、Monaco、画像与运行结果界面
+├─ services/             题库、诊断、Hint、历史和统计业务
+├─ data/                 公开题库、扩展模板；个人记录不进 Git
+├─ prompts/              诊断 Prompt
+├─ pages/、utils/、app.py 原 Streamlit 页面及兼容工具
+├─ scripts/              本地启动脚本
+├─ tests/                Python、浏览器及 Docker 测试
+├─ docs/                 架构与接口说明
+├─ outputs/              审核后的报告、截图和验收摘要
+└─ work/                 忽略的本地临时验收材料
+```
+
+## 环境要求
+
+- 本轮验证环境：Windows、Python 3.10.20（Anaconda `ai-study`）、Node.js 24.14.1、npm 11.11.0。
+- Python 3.10+；依赖以 `requirements.txt` 为准，前端依赖以 `frontend/package-lock.json` 为准。
+- Docker 仅在运行代码时需要；本实现使用 `desktop-linux` context、Linux Engine 和本地 Python 镜像。
+- AI 诊断需要网络和有效的服务端 DeepSeek 配置；浏览、编辑和草稿不需要模型请求。
+- 建议演示时串行运行构建、回归与 Docker 测试，给 Windows/WSL 留足内存。
+
+以下命令使用本机真实项目和 Python 路径；换机器时调整路径，不要照搬磁盘位置或覆盖现有环境。
 
 ## 新版工作台运行
 
-在项目根目录执行（已有 `.env` 保持原样，不需要复制或重新配置）：
+在新环境首次安装依赖、构建前端时执行（已有 `.env` 和学习数据保持原样）：
 
 ```powershell
+Set-Location 'D:\Projects\Python\ai-programming-tutor'
 & 'D:\anaconda\envs\ai-study\python.exe' -m pip install -r requirements.txt
 npm.cmd --prefix frontend ci
 npm.cmd --prefix frontend run build
+```
+
+日常启动无需重新安装。先在 Windows 中打开 Docker Desktop；需要网页运行时，在同一 PowerShell 终端启用现有执行开关：
+
+```powershell
+Set-Location 'D:\Projects\Python\ai-programming-tutor'
+$env:AI_TUTOR_EXECUTION_ENABLED = '1'
 .\scripts\start_workbench.ps1
 ```
 
+也可直接启动后端：
+
+```powershell
+& 'D:\anaconda\envs\ai-study\python.exe' -m uvicorn backend.app:app --host 127.0.0.1 --port 8000
+```
+
+使用单个 Uvicorn 进程，不加 `--workers`。执行默认关闭；不设置开关时，其他功能仍可使用。PowerShell 开关只影响当前进程环境，不需要改 `.env`。
+
+前后端分开开发时，后端按上面命令运行，另开终端执行 `npm.cmd --prefix frontend run dev`，打开 `http://127.0.0.1:5173/`；Vite 已将 `/api` 代理到 8000。M1 执行的 Host/Origin 限定为本机 8000/5173，随意改端口可能被拒绝。
+
 打开 `http://127.0.0.1:8000`。工作台、学习路线、绿墙与历史使用同一组题库和记录服务。编辑器草稿在当前浏览器按题目和语言持久化，刷新和切页可恢复，旧 Python 草稿继续读取；诊断不会覆盖代码。第一次从仍然打开的旧 Streamlit 会话迁移时，先在旧练习页「导出当前会话草稿到新版工作台」下载 JSON，再在新版草稿菜单导入，冲突保留新版已有稿。
 
-开发模式、接口契约、迁移边界与验收方式见 [工作台说明](docs/workbench.md)；四语言、模板和能力画像规则见 [第三阶段说明](docs/phase3.md)。新版不包含代码执行器；测试面板只显示题库示例和预期输出，不伪造运行结果。
+开发模式、接口契约、迁移边界与验收方式见 [工作台说明](docs/workbench.md)；四语言、模板和能力画像规则见 [第三阶段说明](docs/phase3.md)。测试区现在可显示 Python 两数之和的真实运行结果；其他组合显示未开放说明。
+
+## Docker 配置与 Python 网页运行
+
+新增默认关闭的本机执行 API，支持 Python 两数之和的单个公开示例。代码与函数驱动仅在非 root、无网络、只读根文件系统的临时 Docker 容器内执行；外部控制时间、输出、内存与进程限制并确认清理。执行不调用 AI、不记录提交、不改变绿墙或能力画像。示例通过不代表正式本地测试集或 LeetCode Accepted。
+
+Windows 安装 Docker Desktop 后，按[官方 WSL2 后端说明](https://docs.docker.com/desktop/features/wsl/)确认 WSL2 与 Linux 容器模式；Windows 原生终端不要求另装 Ubuntu。本轮不自动更改 Docker/WSL 配置。
+
+```powershell
+docker --context desktop-linux info --format 'OSType={{.OSType}} CPUs={{.NCPU}} Memory={{.MemTotal}} Security={{json .SecurityOptions}}'
+docker --context desktop-linux image inspect python:3.12-slim --format '{{.Id}}'
+# 仅当本地缺少镜像时，由负责人预先准备：
+docker --context desktop-linux pull python:3.12-slim
+```
+
+运行服务不会自动拉镜像。默认策略为非 root、只读根目录、无外网、cap-drop ALL、no-new-privileges、默认 seccomp、128 MiB 内存、0.5 核 CPU、64 PID、3 秒墙钟、有限 tmpfs，以及 stdout/stderr 各 64 KiB；结束后确认容器回收。不挂载项目目录或 Docker Socket，不把宿主密钥传入容器。
+
+网页选择 **#1 两数之和 → Python 3 → 运行公开示例**。执行 Token 只存内存；结果显示运行状态、输出、沙箱耗时与预期/实际值。编辑、切题或切语言使旧结果失效，原同步请求结束前不允许重复运行。没有取消接口，不能把浏览器停止等待说成容器已经取消。
+
+API 与安全细节见 [M1 执行说明](docs/execution-m1.md)；前端接入见 [Day 1 验收报告](outputs/m3-lite-acceptance-report.md)。Java/C/C++ 执行尚未实现，原四语言编辑和草稿功能保留。旧 `/api/health` 中的 `execution_available=false` 不是当前执行能力判断依据；使用 `/api/execution/session` 的能力说明，并以实际运行结果为准。
 
 ## 保留的 Streamlit 运行方式
 
@@ -39,8 +150,9 @@ if (-not (Test-Path -LiteralPath '.env')) { Copy-Item .env.example .env }  # 仅
 | 变量                    | 必填        | 默认值                      | 说明                                                                                   |
 | ----------------------- | ----------- | --------------------------- | -------------------------------------------------------------------------------------- |
 | `DEEPSEEK_API_KEY`      | AI 诊断必填 | 无                          | 配置在服务端 `.env` 或进程环境变量中；不在页面、日志或 Git 中展示                      |
-| `DEEPSEEK_MODEL`        | 可选        | `deepseek-flash`            | Responses API 仅支持 `deepseek-flash` 或 `deepseek-v4-pro`；其他值会在发起请求前被拒绝 |
+| `DEEPSEEK_MODEL`        | 可选        | `deepseek-flash`            | 当前项目白名单为 `deepseek-flash`、`deepseek-v4-pro`；其他值在联网前拒绝 |
 | `AI_TUTOR_CATALOG_PATH` | 可选        | `data/problem_catalog.json` | 题库路径，主要用于测试或演示隔离；文件必须存在且结构合法                               |
+| `AI_TUTOR_EXECUTION_ENABLED` | 可选 | `0` | 当前 PowerShell 中设为 `1` 开启 M1；无需修改密钥文件 |
 
 `python-dotenv` 按 UTF-8 读取项目根目录 `.env`，`override=False`，已有进程环境变量优先。
 
@@ -58,15 +170,16 @@ if (-not (Test-Path -LiteralPath '.env')) { Copy-Item .env.example .env }  # 仅
 - **兼容历史**：保留旧记录、不完整记录及非字典异常条目；展示题号、题名、时间、Hint 使用、诊断来源、请求模型和用户自报通过状态。活动与诊断分别展示。
 - **深色界面**：主题集中在 `.streamlit/config.toml`，布局及热力图样式集中在 `utils/ui.py`。
 
-## 三类操作的区别
+## 操作与统计的区别
 
 | 操作                 | 保存位置                                  | 增加提交/绿墙          | 增加完成数     |
 | -------------------- | ----------------------------------------- | ---------------------- | -------------- |
 | AI 诊断 / 重新诊断   | `data/records.json`                       | 否                     | 否             |
+| 运行公开示例         | 临时容器与内存结果，不写学习记录           | 否                     | 否             |
 | 记录一次本地提交     | `data/activities.json`，`kind=submission` | 是，每次主动点击计一次 | 否             |
 | 记录 LeetCode 已通过 | `data/activities.json`，`kind=accepted`   | 否                     | 按不同题号去重 |
 
-通过按钮需要勾选用户确认。这是**用户自报状态**，没有登录 LeetCode、查询判题结果或同步官方提交。学生代码不会在本地执行，不提供执行沙箱。
+通过按钮需要用户明确确认。这是**用户自报状态**，没有登录 LeetCode、查询判题结果或同步官方提交。M1 执行 API 与此按钮独立，执行结果不改写用户自报状态。
 
 同题多次主动提交均计数；相同活动 ID 的重试只保存一次。普通重运行不会创建活动。没有明确日期/题号的旧诊断不会被猜测成提交或 Accepted。
 
@@ -115,6 +228,9 @@ $env:AI_TUTOR_CATALOG_PATH = 'D:\Temp\ai-tutor-demo\problem_catalog.json'
 
 ```powershell
 & 'D:\anaconda\envs\ai-study\python.exe' -B -m unittest discover -s tests -v
+npm.cmd --prefix frontend test
+npm.cmd --prefix frontend run typecheck
+npm.cmd --prefix frontend run build
 git diff --check
 git diff --cached --check
 git status --short
@@ -124,7 +240,22 @@ git status --short -- .env.example
 
 自动化测试使用临时目录、虚构输入和模拟 HTTP 响应，不联网、不加载真实密钥、不写正式学习记录或提交数据。覆盖 DeepSeek Responses 结构化请求参数与输出解析、状态/空输出/非法 JSON/超时等失败响应、三级 Hint、草稿及过时请求隔离、题库缺失/损坏/结构校验/空阶段/缓存刷新、records 非法 JSON 与非标准常量、活动幂等/并发、提交与通过分离、365 天热力图、时区与连续天数、来源展示、旧记录兼容及页面流程。
 
-## 发布前验证状态
+普通 Python 测试默认跳过 15 项真实 Docker 集成，跳过不计通过。Engine 与镜像准备好后单独串行启用：
+
+```powershell
+$env:AI_TUTOR_DOCKER_INTEGRATION = '1'
+try {
+    & 'D:\anaconda\envs\ai-study\python.exe' -B -m unittest discover -s tests -p test_docker_integration.py -v
+} finally {
+    Remove-Item Env:\AI_TUTOR_DOCKER_INTEGRATION
+}
+```
+
+真实 AI 验收另行记录；上述 Mock 测试不代表调用了真实模型。浏览器专用夹具必须使用临时学习数据；[验收说明](docs/workbench.md)和 Day 2 报告提供证据来源。
+
+## 早期 Streamlit 验证记录
+
+以下保留早期验收范围；最终交付范围和本轮测试以 [Day 2 最终验收报告](outputs/day2-final-acceptance-report.md) 为准。答辩素材见 [defense-materials.md](outputs/defense-materials.md)。
 
 **已实现**
 
@@ -135,7 +266,7 @@ git status --short -- .env.example
 
 **已验证（自动化）**
 
-- 当前 81 项 `unittest` 全部通过，使用临时数据和模拟 HTTP，不调用真实 API。
+- 早期 81 项 `unittest` 全部通过，使用临时数据和模拟 HTTP，不调用真实 API。
 - 自动化测试不会写入正式数据；AppTest 会对正式 `data/records.json` 与 `data/problem_catalog.json` 做前后哈希校验。
 - 页面级测试确认题库损坏时仪表盘与练习页给出中文错误、空阶段不会崩溃。
 
@@ -143,7 +274,29 @@ git status --short -- .env.example
 
 - **真实 API 已由项目负责人实际测试通过**；未记录原始响应或密钥。仓库内自动化测试仍全部使用模拟 HTTP。
 - 默认模型 `deepseek-flash`、账号可用性、Schema 的实际约束效果和 `reasoning.effort=none` 参数已由负责人实网确认；如需复现，请使用自己的账号和临时数据目录。
-- 最新界面尚未做人工浏览器验收。
-- 学生代码不会执行，没有运行沙箱；没有 LeetCode 官方判题同步、全量在线题库、账号与多用户隔离。
+- 当前界面已完成独立浏览器验收，Mock AI、真实模型和真实 Docker 的证据分别记录在各阶段报告中。
+- 前端已接入 Python 两数之和公开示例运行。没有 LeetCode 官方判题同步、全量在线题库、账号与多用户隔离。
 - 数据并发保护仅限单个 Python 进程；多进程部署需要外部协调。
 - 按当前产品定位，不开发桌面端。
+
+## 课程演示顺序
+
+1. 打开工作台，展示题库、8 阶段路线、推荐题单和六维完成度。
+2. 切换四种语言，编辑合成草稿，再切回验证隔离；不要展示密钥文件。
+3. 在 #1 Python 中运行正确/错误示例，说明“运行成功”和“示例通过”的区别。
+4. 用有边界错误的短代码请求一次 AI 诊断，逐级展开三个 Hint；真实请求可能收费。
+5. 展示诊断历史，明确诊断与运行不会增加提交。主动“记录提交”后再展示绿墙。
+6. 解释“标记 LeetCode 已通过”为用户自报；同题多语言通过在总体完成度中只计一道。
+
+答辩使用临时数据或截图时须注明“模拟学习数据/Mock AI”或“真实 API”，不要混淆来源。
+
+## 已知限制
+
+- 只有 Python + Two Sum 的一个公开示例执行；没有四语言执行或全题正式判题。
+- AI 是静态教学建议，不证明正确性；模型不可用、余额不足或输出不完整时诊断会明确失败。
+- 绿墙按主动本地提交计数；雷达图按自报通过覆盖率计算，不是能力评估或面试预测。
+- 草稿依赖当前浏览器存储，不跨设备；存储失败时应及时导出备份。
+- JSON 业务记录和执行会话按本机单进程使用；没有账号、云同步和长期任务队列。
+- 同步执行没有服务器取消；网络中断或页面关闭后仍由 M1 的超时与回收负责。
+- Docker 共享内核，控制器有高权限；公网前需独立 Worker/节点、认证配额和安全评审。
+- Monaco 包较大，首次加载有成本；现有大包、测试弃用提示不影响本轮构建，但需后续维护。

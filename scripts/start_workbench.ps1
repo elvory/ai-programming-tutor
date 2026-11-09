@@ -8,7 +8,7 @@ if (-not (Test-Path -LiteralPath $Python)) {
     throw "Python not found: $Python"
 }
 if (-not (Test-Path -LiteralPath (Join-Path $projectRoot 'frontend\dist\index.html'))) {
-    throw 'Build the workbench first: cd frontend; npm install; npm run build'
+    throw 'Build the workbench first: npm.cmd --prefix frontend ci; npm.cmd --prefix frontend run build'
 }
 Push-Location -LiteralPath $projectRoot
 try {

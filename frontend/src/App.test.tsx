@@ -9,6 +9,8 @@ import {
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import App from "./App";
 import { api } from "./api";
+import { getExecutionSession, runExecution } from "./executionApi";
+import type { ExecutionResult, ExecutionViewState } from "./executionTypes";
 import { draftKey } from "./storage";
 import type { Bootstrap, DiagnosisResult, Problem } from "./types";
 
@@ -18,11 +20,15 @@ vi.mock("./components/CodePanel", () => ({
     onCode,
     language,
     onLanguage,
+    execution,
+    onRun,
   }: {
     code: string;
     onCode: (value: string) => void;
     language: string;
     onLanguage: (value: "python" | "java" | "c" | "cpp") => void;
+    execution?: ExecutionViewState;
+    onRun?: () => void;
   }) => (
     <>
     <select aria-label="编程语言" value={language} onChange={(event) => onLanguage(event.target.value as "python" | "java" | "c" | "cpp")}>
@@ -33,9 +39,12 @@ vi.mock("./components/CodePanel", () => ({
       value={code}
       onChange={(event) => onCode(event.target.value)}
     />
+    <button aria-label="test run" disabled={execution?.busy} onClick={onRun}>Run</button>
+    {execution?.result && <output data-testid="test-execution-output">{execution.result.stdout}</output>}
     </>
   ),
 }));
+vi.mock("./executionApi", () => ({ getExecutionSession: vi.fn(), runExecution: vi.fn() }));
 vi.mock("./api", async () => {
   const actual = await vi.importActual<typeof import("./api")>("./api");
   return {
@@ -115,6 +124,66 @@ beforeEach(() => {
 afterEach(() => {
   cleanup();
   vi.clearAllMocks();
+});
+
+const executionResult = (request_id: string): ExecutionResult => ({
+  status: "SUCCESS", stdout: "fresh execution output", stderr: "", exit_code: 0,
+  execution_time_ms: 30, language: "python", problem_id: 1, request_id,
+  cleanup_confirmed: true, error_message: null, error_code: null, limits: {},
+  judge: { scope: "public_examples", suite_version: "v1", passed: 1, total: 1,
+    executed: 1, all_passed: true, official_accepted: false, cases: [] },
+});
+
+describe("execution integration without changing AI or drafts", () => {
+  beforeEach(() => {
+    vi.mocked(getExecutionSession).mockResolvedValue({ token: "memory-token", capabilities: {
+      enabled: true, engine_verified: false, configuration_valid: true, languages: ["python"],
+      problem_ids: [1], judging_scope: "public_examples", official_accepted: false, max_concurrent: 1, note: "M1",
+    } });
+    vi.mocked(runExecution).mockImplementation(async (payload) => executionResult(payload.request_id));
+  });
+
+  it("runs the current editor without clearing AI hints, changing drafts or recording activity", async () => {
+    vi.mocked(api.diagnose).mockResolvedValue({ request_id: "candidate", revision: 2 });
+    render(<App />);
+    const editor = await screen.findByRole("textbox", { name: "test editor" });
+    fireEvent.change(editor, { target: { value: "current Python source" } });
+    fireEvent.click(screen.getByRole("button", { name: "AI 诊断" }));
+    await screen.findByText("first hint");
+    const syncCalls = vi.mocked(api.sync).mock.calls.length;
+    const saved = JSON.stringify({ ...localStorage });
+    fireEvent.click(screen.getByRole("button", { name: "test run" }));
+    await screen.findByTestId("test-execution-output");
+    expect(runExecution).toHaveBeenCalledWith(expect.objectContaining({ code: "current Python source", language: "python", problem_id: 1 }), "memory-token");
+    expect(screen.getByText("first hint")).toBeInTheDocument();
+    expect(vi.mocked(api.sync).mock.calls.length).toBe(syncCalls);
+    expect(JSON.stringify({ ...localStorage })).toBe(saved);
+    expect(api.submission).not.toHaveBeenCalled();
+    expect(api.accepted).not.toHaveBeenCalled();
+  });
+
+  it.each(["edit", "language", "problem"])("isolates late results after %s changes, even when returning to the original source", async (change) => {
+    let finish!: (value: ExecutionResult) => void;
+    vi.mocked(runExecution).mockReturnValue(new Promise((resolve) => { finish = resolve; }));
+    render(<App />);
+    const editor = await screen.findByRole("textbox", { name: "test editor" });
+    fireEvent.click(screen.getByRole("button", { name: "test run" }));
+    await waitFor(() => expect(runExecution).toHaveBeenCalledOnce());
+    if (change === "edit") {
+      fireEvent.change(editor, { target: { value: "changed source" } });
+      fireEvent.change(editor, { target: { value: "first template" } });
+    } else if (change === "language") {
+      fireEvent.change(screen.getByLabelText("编程语言"), { target: { value: "java" } });
+      fireEvent.change(screen.getByLabelText("编程语言"), { target: { value: "python" } });
+    } else {
+      fireEvent.click(screen.getByRole("button", { name: "下一题" }));
+      fireEvent.click(screen.getByRole("button", { name: "上一题" }));
+    }
+    expect(screen.getByRole("button", { name: "test run" })).toBeDisabled();
+    await act(async () => { finish(executionResult(vi.mocked(runExecution).mock.calls[0][0].request_id)); });
+    expect(screen.queryByTestId("test-execution-output")).not.toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "test run" })).not.toBeDisabled();
+  });
 });
 
 describe("workbench state across real component boundaries", () => {

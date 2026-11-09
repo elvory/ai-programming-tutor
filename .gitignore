@@ -1,6 +1,11 @@
 # Python cache
 __pycache__/
 *.pyc
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.coverage
+htmlcov/
 
 # VS Code settings
 .vscode/
@@ -12,6 +17,10 @@ __pycache__/
 # Local verification artifacts
 /.playwright-cli/
 /work/
+**/.playwright-cli/
+ai-tutor-drafts-*.json
+ai-tutor-memory-drafts-partial-*.json
+*.log
 
 # API secrets
 .env
@@ -19,6 +28,8 @@ __pycache__/
 !.env.example
 
 # React workbench build and local browser checks
+node_modules/
+dist/
 /frontend/node_modules/
 /frontend/dist/
 /frontend/coverage/

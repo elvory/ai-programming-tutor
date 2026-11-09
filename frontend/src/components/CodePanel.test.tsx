@@ -18,7 +18,7 @@ const problem = {
 } as Problem;
 function props(language: Language) {
   return { problem, language, code: "draft", fontSize: 14, fullscreen: false, testHeight: 27, storageError: false,
-    onCode: vi.fn(), onLanguage: vi.fn(), onFontSize: vi.fn(), onFullscreen: vi.fn(), onTestHeight: vi.fn(), onNotice: vi.fn() };
+    onCode: vi.fn(), onLanguage: vi.fn(), onRun: vi.fn(), onFontSize: vi.fn(), onFullscreen: vi.fn(), onTestHeight: vi.fn(), onNotice: vi.fn() };
 }
 afterEach(cleanup);
 describe("four-language Monaco adapter", () => {
@@ -43,11 +43,40 @@ describe("four-language Monaco adapter", () => {
     expect(current.onCode).toHaveBeenCalledWith("C++ template");
     expect(window.confirm).toHaveBeenCalledWith(expect.stringContaining("C++"));
   });
-  it("describes all four languages as unexecuted instead of reporting test success", () => {
+  it("explains unsupported execution without reporting test success", () => {
     render(<CodePanel {...props("c")} />);
     fireEvent.click(screen.getByRole("button", { name: "测试结果" }));
-    expect(screen.getByText("尚未执行代码")).toBeVisible();
-    expect(screen.getByText(/当前四种语言均未接入安全执行环境/)).toBeVisible();
+    expect(screen.getByText("当前语言或题目尚未开放执行")).toBeVisible();
+    expect(screen.getByText(/暂仅开放 Python/)).toBeVisible();
     expect(screen.queryByText("Accepted")).not.toBeInTheDocument();
+  });
+  it("opens only Python Two Sum and prevents empty or busy execution", () => {
+    const initial = props("python");
+    const view = render(<CodePanel {...initial} />);
+    expect(screen.getByRole("button", { name: "运行公开示例" })).toBeEnabled();
+    fireEvent.click(screen.getByRole("button", { name: "运行公开示例" }));
+    expect(initial.onRun).toHaveBeenCalledOnce();
+    for (const language of ["java", "c", "cpp"] as const) {
+      view.rerender(<CodePanel {...props(language)} />);
+      expect(screen.getByRole("button", { name: "运行公开示例" })).toBeDisabled();
+    }
+    view.rerender(<CodePanel {...initial} problem={{ ...problem, id: 217 }} />);
+    expect(screen.getByRole("button", { name: "运行公开示例" })).toBeDisabled();
+    view.rerender(<CodePanel {...initial} code=" " />);
+    expect(screen.getByRole("button", { name: "运行公开示例" })).toBeDisabled();
+    view.rerender(<CodePanel {...initial} execution={{ busy: true, result: null, error: "", stale: false }} />);
+    const run = screen.getByRole("button", { name: "运行公开示例" });
+    expect(run).toBeDisabled();
+    fireEvent.click(run);
+    expect(initial.onRun).toHaveBeenCalledOnce();
+    expect(screen.getByText("正在运行公开示例…")).toBeVisible();
+  });
+  it("reveals execution failures automatically in the result tab", () => {
+    const initial = props("python");
+    const view = render(<CodePanel {...initial} />);
+    expect(screen.queryByRole("region", { name: "代码执行结果" })).not.toBeInTheDocument();
+    view.rerender(<CodePanel {...initial} execution={{ busy: false, result: null, error: "执行服务尚未启用", stale: false }} />);
+    expect(screen.getByRole("alert")).toHaveTextContent("执行服务尚未启用");
+    expect(screen.getByText("运行未完成")).toBeVisible();
   });
 });

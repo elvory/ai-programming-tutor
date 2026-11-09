@@ -57,7 +57,9 @@ async (page) => {
   ensure(after.activities.length === before.activities.length, 'AI diagnosis does not create a submission');
   ensure(after.records.at(-1)['Hint 使用情况'] === 'Hint 1、2、3', 'Hint usage persists to the original record');
   await page.getByRole('button', { name: '测试结果', exact: true }).click();
-  ensure(await page.getByText('尚未执行代码', { exact: true }).isVisible(), 'test results honestly report no code execution');
+  ensure(await page.getByText('当前语言或题目尚未开放执行', { exact: true }).isVisible(), 'unsupported exercise honestly reports execution unavailable');
+  ensure(await page.getByRole('button', { name: '运行公开示例', exact: true }).isDisabled(), 'unsupported exercise cannot start execution');
+  ensure(await page.locator('.execution-result').count() === 0, 'unsupported exercise has no fabricated output or measured time');
   await page.getByRole('button', { name: '测试用例', exact: true }).click();
   await page.getByRole('button', { name: '记录提交', exact: true }).click();
   await page.getByRole('status').filter({ hasText: '已记录一次本地提交' }).waitFor();

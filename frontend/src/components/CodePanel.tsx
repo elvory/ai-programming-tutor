@@ -1,4 +1,4 @@
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import Editor from "@monaco-editor/react";
 import type { editor } from "monaco-editor";
 import {
@@ -12,12 +12,16 @@ import {
   FlaskConical,
   Maximize2,
   Minimize2,
+  Play,
+  LoaderCircle,
   RotateCcw,
   Terminal,
 } from "lucide-react";
 import "../monaco";
 import { LANGUAGES, LANGUAGE_IDS, problemTemplate } from "../languages";
 import { SplitHandle } from "./SplitHandle";
+import { ExecutionResultPanel } from "./ExecutionResultPanel";
+import type { ExecutionViewState } from "../executionTypes";
 import type { Language, Problem } from "../types";
 
 interface Props {
@@ -29,6 +33,8 @@ interface Props {
   fullscreen: boolean;
   testHeight: number;
   storageError: boolean;
+  execution?: ExecutionViewState;
+  onRun?: () => void;
   onCode: (value: string) => void;
   onFontSize: (value: number) => void;
   onFullscreen: () => void;
@@ -44,6 +50,8 @@ export function CodePanel({
   fullscreen,
   testHeight,
   storageError,
+  execution = { busy: false, result: null, error: "", stale: false },
+  onRun,
   onCode,
   onFontSize,
   onFullscreen,
@@ -56,6 +64,15 @@ export function CodePanel({
   const [exampleIndex, setExampleIndex] = useState(0);
   const [cursor, setCursor] = useState({ lineNumber: 1, column: 1 });
   const [copied, setCopied] = useState(false);
+  const executionSupported = language === "python" && problem.id === 1;
+  useEffect(() => {
+    if (execution.busy || execution.result || execution.error) setTestTab("results");
+  }, [execution.busy, execution.result, execution.error]);
+  const executionLabel = execution.busy ? (execution.stale ? "等待旧任务结束" : "运行中")
+    : execution.stale ? "结果已失效" : execution.error ? "运行未完成"
+    : execution.result ? (execution.result.status === "SUCCESS"
+      ? (execution.result.judge.all_passed ? "示例通过" : "示例未通过") : "执行失败")
+    : "尚未执行";
   const example =
     problem.examples[Math.min(exampleIndex, problem.examples.length - 1)];
   async function copy() {
@@ -143,6 +160,16 @@ export function CodePanel({
               <option value="readonly">只读预览</option>
             </select>
             <span className="push-right" />
+            <button
+              className="execution-run-button"
+              aria-label="运行公开示例"
+              title={executionSupported ? "运行当前 Python 代码的公开示例" : "暂仅开放 Python 两数之和公开示例"}
+              disabled={!executionSupported || execution.busy || !code.trim() || !onRun}
+              onClick={onRun}
+            >
+              {execution.busy ? <LoaderCircle size={12} className="execution-spinner" /> : <Play size={12} />}
+              {execution.busy ? "正在运行…" : "运行公开示例"}
+            </button>
             <button
               className="icon-button"
               title="整理缩进"
@@ -254,7 +281,7 @@ export function CodePanel({
             </button>
             <span className="not-run-label push-right">
               <span className="tiny-dot" />
-              尚未执行
+              {executionLabel}
             </span>
           </div>
           <div className="test-content">
@@ -291,17 +318,10 @@ export function CodePanel({
                 ) : (
                   <p className="muted">本题暂无示例数据。</p>
                 )}
+                {!executionSupported && <p className="execution-support-note">暂仅开放 Python · 两数之和（#1）的公开示例运行。</p>}
               </>
             ) : (
-              <div className="no-execution">
-                <Terminal size={20} />
-                <div>
-                  <b>尚未执行代码</b>
-                  <p>
-                    当前四种语言均未接入安全执行环境，暂不提供实际输出、运行时间或判题结果。
-                  </p>
-                </div>
-              </div>
+              <ExecutionResultPanel execution={execution} supported={executionSupported} />
             )}
           </div>
         </section>
